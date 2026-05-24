@@ -317,7 +317,7 @@
       <button class="cat-tab" data-cat="concept">概念</button>
       <button class="cat-tab" data-cat="narrative">叙述手法</button>
     <button class="cat-tab" data-cat="detective-move">侦探做法</button>
-    <button class="cat-tab" data-cat="case-logic">破案逻辑</button>
+    <button class="cat-tab" data-cat="case-logic">推理逻辑</button>
     </div>
     <button class="btn-primary" id="btnAdd">＋ 新增</button>
     <button class="btn-primary" id="btnImport" style="background:var(--blue);border-color:#0f2540;box-shadow:3px 3px 0 #0f2540">⬇ 从书名导入</button>
@@ -382,7 +382,7 @@
             <option value="concept">概念</option>
             <option value="narrative">叙述手法</option>
             <option value="detective-move">侦探做法</option>
-            <option value="case-logic">破案逻辑</option>
+            <option value="case-logic">推理逻辑</option>
           </select>
         </div>
       </div>
@@ -759,7 +759,7 @@ async function ghSave() {
 // ══════════════════════════════════════════════
 function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function today() { return new Date().toISOString().slice(0,10); }
-const CAT_LABEL = { trick:'诡计', concept:'概念', narrative:'叙述手法', 'detective-move':'侦探做法', 'case-logic':'破案逻辑' };
+const CAT_LABEL = { trick:'诡计', concept:'概念', narrative:'叙述手法', 'detective-move':'侦探做法', 'case-logic':'推理逻辑' };
 const CAT_CLASS = { trick:'cat-trick', concept:'cat-concept', narrative:'cat-narrative', 'detective-move':'cat-detective-move', 'case-logic':'cat-case-logic' };
 
 // ══════════════════════════════════════════════
@@ -911,7 +911,7 @@ function openDetail(id) {
     <div class="d-hr"></div>
     <div class="d-label">简述</div><div class="d-text">${esc(e.summary)}</div>
     ${e.detail?`<div class="d-hr"></div><div class="d-label">详细分析</div><div class="d-text">${esc(e.detail)}</div>`:''}
-    ${e.cat==='case-logic'&&e.steps?`<div class="d-hr"></div><div class="d-label">破案逻辑流程</div>${renderFlowChart(e.steps)}`:''}
+    ${e.cat==='case-logic'&&e.steps?`<div class="d-hr"></div><div class="d-label">推理逻辑流程</div>${renderFlowChart(e.steps)}`:''}
     ${srcHtml?`<div class="d-hr"></div><div class="d-label">书中运用示例</div><div class="d-examples">${srcHtml}</div>`:''}
     ${e.cat==='trick'&&(e.keywords||[]).length?`<div class="d-hr"></div><div class="d-label">关键词</div><div class="d-keywords">${e.keywords.map(k=>`<span class="d-keyword">${esc(k)}</span>`).join('')}</div>`:''}
     ${e.notes?`<div class="d-hr"></div><div class="d-label">备注</div><div class="d-text" style="font-style:italic">${esc(e.notes)}</div>`:''}
@@ -1112,7 +1112,7 @@ function buildFillPrompt(title, cat) {
   const typeNote = isDM
     ? '\n\n注意：侦探做法记录侦探在案件中的主动行动，不是犯罪手法。'
     : isCL
-    ? '\n\n注意：破案逻辑记录推理链条步骤，steps字段每行一步，最后一行为结论。'
+    ? '\n\n注意：推理逻辑记录推理链条步骤，steps字段每行一步，最后一行为结论。'
     : '';
   return '你是一位推理小说专家。请分析以下推理' + catLabel + '，以 JSON 格式返回详细信息（直接输出 JSON，不要加任何说明文字）：\n\n条目名称：「' + title + '」\n类型：' + catLabel + typeNote + '\n\n' + fence + 'json\n{\n  "summary": "一两句话概括核心描述",\n  "detail": "深入分析",' + howWhy + '\n}\n' + fence;
 }
@@ -1298,7 +1298,7 @@ function renderPreview(items) {
             <option value="concept"   ${e.cat==='concept'  ?'selected':''}>概念</option>
             <option value="narrative" ${e.cat==='narrative'?'selected':''}>叙述手法</option>
             <option value="detective-move" ${e.cat==='detective-move'?'selected':''}>侦探做法</option>
-            <option value="case-logic" ${e.cat==='case-logic'?'selected':''}>破案逻辑</option>
+            <option value="case-logic" ${e.cat==='case-logic'?'selected':''}>推理逻辑</option>
           </select>
         </div>
         <div class="preview-meta">${[...(e.how||[]),...(e.why||[])].slice(0,4).join(' · ')}</div>
@@ -1714,7 +1714,7 @@ buildPrompt = function(bookName, author) {
     '- concept（概念）：推理文学中已被命名、独立存在的理论或原则，通常来自逻辑学、哲学或推理理论。必须是真实存在的术语，不得自行创造。例："奥卡姆剃刀"、"契科夫之枪"、"假说演绎法"、"汉隆剃刀"、"演绎法"\n'+
     '- narrative（叙述手法）：作者在叙事层面有意使用的写作技巧，针对的是"作者是怎么写的"。包括叙述视角技巧、结构技巧、信息控制等。例："不可靠叙述者"、"事后回溯写作结构"、"限制视角制造信息不对称"、"叙述性诡计"\n'+
     '- detective-move（侦探做法）：侦探在破案过程中主动采取的行动或策略，针对的是"侦探做了什么"。例："侦探故意透露假证据引凶手露馅"、"侦探以自身为诱饵"、"侦探杀死凶手以终止连环杀人"。注意：这类条目可以是具体案件中的一次行动，无需跨作品复用\n'+
-    '- case-logic（破案逻辑）：某个具体案件的完整推理链条，从发现线索到得出结论的步骤。无需跨作品复用\n\n'+
+    '- case-logic（推理逻辑）：某个具体案件的完整推理链条，从发现线索到得出结论的步骤。无需跨作品复用\n\n'+
     '【分类判断原则】\n'+
     '- 问"谁做了什么"：凶手做的 → trick；侦探做的 → detective-move；作者做的 → narrative\n'+
     '- 是已命名理论 → concept；是某案推理过程 → case-logic\n'+
@@ -1723,7 +1723,8 @@ buildPrompt = function(bookName, author) {
     '1. 条目名称简洁，优先使用推理界约定俗成的术语，不加破折号解释，不堆砌修饰语\n'+
     '2. 概念（concept）必须是已存在的命名术语，不得编造\n'+
     '3. trick和narrative可合并的不拆分\n'+
-    '4. 作者特质和侦探特质只写在对应区块，不要写入条目\n\n'+
+    '4. title和summary必须用通用描述，不出现具体人名、书名、案件名——这些只放在example字段。例：title应为"侦探亲手处决凶手"而非"波洛亲手处决凶手"\n'+
+    '5. 作者特质和侦探特质只写在对应区块，不要写入条目\n\n'+
     '书名：《'+bookName+'》\n'+authorLine+'\n\n'+
     '请输出以下三个JSON区块，直接输出不要任何说明：\n\n'+
     fence+'json entries\n'+

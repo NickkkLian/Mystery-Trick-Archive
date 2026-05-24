@@ -684,6 +684,8 @@ function saveCfg() { localStorage.setItem('mtrick_cfg', JSON.stringify(cfg)); }
 // ══════════════════════════════════════════════
 let entries = [], fileSha = null, nextId = 1;
 let authors = [], detectives = [], nextAuthorId = 1, nextDetectiveId = 1;
+let detectiveMoves = [], caseLogics = [], nextDMId = 1, nextCLId = 1;
+let editingDMId = null, editingCLId = null;
 let filterCat = 'all', filterHow = '', filterWhy = '', searchQuery = '';
 let editingId = null;
 let formHowTags = [], formWhyTags = [], formKwTags = [];
@@ -811,6 +813,7 @@ function renderTricks() {
       <span class="card-cat ${CAT_CLASS[e.cat]||'cat-trick'}">${CAT_LABEL[e.cat]||esc(e.cat)}</span>
       <div class="card-title">${esc(e.title)}</div>
       ${srcLine?`<div class="card-sources">${srcLine}</div>`:''}
+      ${e.cat==='detective-move'&&e.detectiveName?`<div class="card-sources" style="color:var(--green)">侦探：${esc(e.detectiveName)}</div>`:''}
       <div class="card-summary">${esc(e.summary)}</div>
       <div class="card-meta">
         <div class="card-pills">${e.cat==='trick'?(e.keywords||[]).slice(0,3).map(k=>`<span class="pill">${esc(k)}</span>`).join(''):''}</div>
@@ -1099,8 +1102,19 @@ function buildFillPrompt(title, cat) {
   const catLabel = CAT_LABEL[cat] || '诡计';
   const isTrick = cat === 'trick';
   const fence = '```';
-  const howWhy = isTrick ? '\n  "how": ["实现手法完整描述"],\n  "howShort": ["手法缩略词，2-5字"],\n  "why": ["目的完整描述"],\n  "whyShort": ["目的缩略词，2-5字"],\n  "keywords": ["关键词1", "关键词2"],' : '';
-  return '你是一位推理小说专家。请分析以下推理' + catLabel + '，以 JSON 格式返回详细信息（直接输出 JSON，不要加任何说明文字）：\n\n条目名称：「' + title + '」\n类型：' + catLabel + '\n\n' + fence + 'json\n{\n  "summary": "一两句话概括核心逻辑",\n  "detail": "深入分析：原理、变体、适用条件、局限性等",' + howWhy + '\n}\n' + fence;
+  const isDM = cat === 'detective-move';
+  const isCL = cat === 'case-logic';
+  const howWhy = isTrick
+    ? '\n  "how": ["实现手法完整描述"],\n  "howShort": ["手法缩略词，2-5字"],\n  "why": ["目的完整描述"],\n  "whyShort": ["目的缩略词，2-5字"],\n  "keywords": ["关键词1", "关键词2"],'
+    : isDM ? '\n  "detectiveName": "侦探名",'
+    : isCL ? '\n  "steps": "每行一步的推理链条，最后一行为结论",'
+    : '';
+  const typeNote = isDM
+    ? '\n\n注意：侦探做法记录侦探在案件中的主动行动，不是犯罪手法。'
+    : isCL
+    ? '\n\n注意：破案逻辑记录推理链条步骤，steps字段每行一步，最后一行为结论。'
+    : '';
+  return '你是一位推理小说专家。请分析以下推理' + catLabel + '，以 JSON 格式返回详细信息（直接输出 JSON，不要加任何说明文字）：\n\n条目名称：「' + title + '」\n类型：' + catLabel + typeNote + '\n\n' + fence + 'json\n{\n  "summary": "一两句话概括核心描述",\n  "detail": "深入分析",' + howWhy + '\n}\n' + fence;
 }
 
 // Wire up fill-prompt button
@@ -1446,7 +1460,13 @@ document.getElementById('whyFilter').addEventListener('change', e=>{ filterWhy=e
   if (!ok) {
     try {
       const local = JSON.parse(localStorage.getItem('mtrick_local'));
-      if (local?.entries) { entries=local.entries; nextId=Math.max(0,...entries.map(e=>e.id))+1; }
+      if (local?.entries) {
+        entries=local.entries; nextId=Math.max(0,...entries.map(e=>e.id))+1;
+        authors=local.authors||[]; nextAuthorId=Math.max(0,...(local.authors||[]).map(a=>a.id),0)+1;
+        detectives=local.detectives||[]; nextDetectiveId=Math.max(0,...(local.detectives||[]).map(d=>d.id),0)+1;
+        detectiveMoves=local.detectiveMoves||[]; nextDMId=Math.max(0,...(local.detectiveMoves||[]).map(d=>d.id),0)+1;
+        caseLogics=local.caseLogics||[]; nextCLId=Math.max(0,...(local.caseLogics||[]).map(c=>c.id),0)+1;
+      }
       setSyncStatus('err', cfg.token?'同步失败，显示本地缓存':'请在 ⚙ 中配置 GitHub');
     } catch {}
   }
@@ -1688,25 +1708,43 @@ buildPrompt = function(bookName, author) {
   const authorLine = author ? '作者：'+author : '';
   const fence = '```';
 
-  // Build existing entries index for Claude to reference
   return '你是一位推理小说专家。请分析以下书目，严格按照以下规则输出：\n\n'+
-    '【规则】\n'+
-    '1. 条目名称（title）：简洁，优先使用推理界约定俗成的术语，不加破折号解释，不堆砌修饰语。具体要求按类型区分：\n'+
-    '   - 概念（concept）：必须是已被命名、独立存在的理论或原则（如"奥卡姆剃刀""契科夫之枪""假说演绎法"），不得将书中情节或手法归纳总结后编造为新概念\n'+
-    '   - 诡计（trick）和叙述手法（narrative）：用简洁的描述性短语即可，无需是已有术语\n'+
-    '2. 诡计/概念/叙述手法条目必须是可跨作品复用的通用手法，而非对单次情节的描述\n'+
-    '3. 可合并的内容绝对不要拆分成多条\n'+
-    '4. 分类必须唯一：诡计(trick)=具体作案手法，概念(concept)=已命名理论框架，叙述手法(narrative)=作者叙事技巧，侦探做法(detective-move)=侦探在案件中采取的具体行动或策略，破案逻辑(case-logic)=某案件的推理链条步骤\n'+
-    '5. 作者特质和侦探特质只写在对应区块，不要写入条目\n'+
-    '\n\n'+
+    '【五个分类的明确定义】\n'+
+    '- trick（诡计）：凶手实施犯罪时使用的具体手法，针对的是"犯罪是怎么做到的"。必须是可跨作品复用的通用手法。例："利用列车时刻表制造不在场证明"、"借助双胞胎身份互换"\n'+
+    '- concept（概念）：推理文学中已被命名、独立存在的理论或原则。必须是真实存在的术语，不得自行创造。例："奥卡姆剃刀"、"不可靠叙述者"、"契科夫之枪"\n'+
+    '- narrative（叙述手法）：作者在叙事层面有意使用的写作技巧，针对的是"作者是怎么写的"。例："事后回溯写作结构"、"限制视角制造信息不对称"\n'+
+    '- detective-move（侦探做法）：侦探在破案过程中主动采取的行动或策略，针对的是"侦探做了什么"。例："侦探故意透露假证据引凶手露馅"、"侦探以自身为诱饵"、"侦探杀死凶手以终止连环杀人"。注意：这类条目可以是具体案件中的一次行动，无需跨作品复用\n'+
+    '- case-logic（破案逻辑）：某个具体案件的完整推理链条，从发现线索到得出结论的步骤。无需跨作品复用\n\n'+
+    '【分类判断原则】\n'+
+    '- 问"谁做了什么"：凶手做的 → trick；侦探做的 → detective-move；作者做的 → narrative\n'+
+    '- 是已命名理论 → concept；是某案推理过程 → case-logic\n'+
+    '- trick和narrative必须是可复用的通用手法；detective-move和case-logic可以是具体的一次事件\n\n'+
+    '【其他规则】\n'+
+    '1. 条目名称简洁，优先使用推理界约定俗成的术语，不加破折号解释，不堆砌修饰语\n'+
+    '2. 概念（concept）必须是已存在的命名术语，不得编造\n'+
+    '3. trick和narrative可合并的不拆分\n'+
+    '4. 作者特质和侦探特质只写在对应区块，不要写入条目\n\n'+
     '书名：《'+bookName+'》\n'+authorLine+'\n\n'+
     '请输出以下三个JSON区块，直接输出不要任何说明：\n\n'+
     fence+'json entries\n'+
     '[\n'+
-    '  {\n    "cat": "trick/concept/narrative/detective-move/case-logic",\n    "title": "简洁术语名",\n    "how": ["实现手法完整描述（仅trick填写）"],\n    "howShort": ["手法缩略词，2-5字（仅trick）"],\n    "why": ["目的完整描述（仅trick填写）"],\n    "whyShort": ["目的缩略词，2-5字（仅trick）"],\n    "summary": "核心逻辑或描述",\n    "detail": "深入分析",\n    "example": "书中具体运用（概述）",\n    "keywords": ["关键词（仅trick填写）"],\n    "detectiveName": "侦探名（仅detective-move填写，其余留空）",\n    "steps": "推理步骤，每行一步，最后一行为结论（仅case-logic填写，其余留空）"\n  },\n'+
+    '  {\n'+
+    '    "cat": "trick/concept/narrative/detective-move/case-logic",\n'+
+    '    "title": "简洁名称",\n'+
+    '    "how": ["实现手法完整描述（仅trick填写，其余留空数组）"],\n'+
+    '    "howShort": ["手法缩略词2-5字（仅trick）"],\n'+
+    '    "why": ["目的完整描述（仅trick填写，其余留空数组）"],\n'+
+    '    "whyShort": ["目的缩略词2-5字（仅trick）"],\n'+
+    '    "summary": "一两句核心描述",\n'+
+    '    "detail": "深入分析",\n'+
+    '    "example": "书中具体运用概述",\n'+
+    '    "keywords": ["关键词（仅trick填写，其余留空数组）"],\n'+
+    '    "detectiveName": "侦探名（仅detective-move填写，其余留空字符串）",\n'+
+    '    "steps": "每行一步的推理链条（仅case-logic填写，其余留空字符串）"\n'+
+    '  }\n'+
     ']\n'+fence+'\n\n'+
     fence+'json author\n'+
-    '{\n  "name": "'+(author||bookName)+'",\n  "style": "从本书中观察到的作者写作特质、惯用手法、叙事倾向（不超过200字，只写能从本书印证的内容）"\n}\n'+fence+'\n\n'+
+    '{\n  "name": "'+(author||bookName)+'",\n  "style": "从本书观察到的作者写作特质、惯用手法、叙事倾向（不超过200字，只写能从本书印证的内容）"\n}\n'+fence+'\n\n'+
     fence+'json detective\n'+
     '[\n  {\n    "name": "侦探姓名",\n    "authorName": "'+(author||'')+'",\n    "trait": "在本书中展现的推理方式、性格特质、标志性手法"\n  }\n]\n'+fence+'\n\n'+
     '如果本书没有固定侦探，detective区块输出空数组[]。';
@@ -1961,14 +1999,18 @@ document.getElementById('btnConfirmMerge').addEventListener('click', async () =>
 
   const newEntry = {
     id: nextId++,
-    cat:      ['trick','concept','narrative'].includes(mergedEntry.cat) ? mergedEntry.cat : 'trick',
+    cat:      ['trick','concept','narrative','detective-move','case-logic'].includes(mergedEntry.cat) ? mergedEntry.cat : 'trick',
     title:    (mergedEntry.title||'').trim(),
     how:      Array.isArray(mergedEntry.how) ? mergedEntry.how : [],
+    howShort: Array.isArray(mergedEntry.howShort) ? mergedEntry.howShort : [],
     why:      Array.isArray(mergedEntry.why) ? mergedEntry.why : [],
+    whyShort: Array.isArray(mergedEntry.whyShort) ? mergedEntry.whyShort : [],
     summary:  (mergedEntry.summary||'').trim(),
     detail:   (mergedEntry.detail||'').trim(),
     sources:  mergedSources,
-    keywords: Array.isArray(mergedEntry.keywords) ? mergedEntry.keywords : [],
+    keywords:      Array.isArray(mergedEntry.keywords) ? mergedEntry.keywords : [],
+    detectiveName: (mergedEntry.detectiveName||'').trim(),
+    steps:         (mergedEntry.steps||'').trim(),
     notes:    '',
     date:     today(),
   };

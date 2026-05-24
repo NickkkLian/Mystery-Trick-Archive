@@ -376,18 +376,7 @@
             <p class="f-hint">详细描述，回车添加</p>
           </div>
         </div>
-        <div class="f-row">
-          <div class="f-group">
-            <label class="f-label">手法缩略（用于筛选）</label>
-            <div class="tag-input-wrap" id="howShortTagWrap"></div>
-            <p class="f-hint">简短标签，回车添加，例：时间差</p>
-          </div>
-          <div class="f-group">
-            <label class="f-label">目的缩略（用于筛选）</label>
-            <div class="tag-input-wrap" id="whyShortTagWrap"></div>
-            <p class="f-hint">简短标签，回车添加，例：制造密室</p>
-          </div>
-        </div>
+
       </div>
       <hr class="f-hr" />
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
@@ -536,6 +525,7 @@ function saveCfg() { localStorage.setItem('mtrick_cfg', JSON.stringify(cfg)); }
 //  STATE
 // ══════════════════════════════════════════════
 let entries = [], fileSha = null, nextId = 1;
+let authors = [], detectives = [], nextAuthorId = 1, nextDetectiveId = 1;
 let filterCat = 'all', filterHow = '', filterWhy = '', searchQuery = '';
 let editingId = null;
 let formHowTags = [], formWhyTags = [], formKwTags = [];
@@ -613,8 +603,8 @@ const CAT_CLASS = { trick:'cat-trick', concept:'cat-concept', narrative:'cat-nar
 // ══════════════════════════════════════════════
 function rebuildDropdowns() {
   const tricks = entries.filter(e => e.cat === 'trick');
-  const hows = [...new Set(tricks.flatMap(e => e.howShort||[]))].sort();
-  const whys = [...new Set(tricks.flatMap(e => e.whyShort||[]))].sort();
+  const hows = [...new Set(tricks.flatMap(e => (e.howShort&&e.howShort.length?e.howShort:e.how)||[]))].sort();
+  const whys = [...new Set(tricks.flatMap(e => (e.whyShort&&e.whyShort.length?e.whyShort:e.why)||[]))].sort();
   const hSel = document.getElementById('howFilter'), wSel = document.getElementById('whyFilter');
   const ch = hSel.value, cw = wSel.value;
   hSel.innerHTML = '<option value="">— 全部手法 —</option>' + hows.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('');
@@ -628,8 +618,8 @@ function rebuildDropdowns() {
 // ══════════════════════════════════════════════
 function matchEntry(e) {
   if (filterCat !== 'all' && e.cat !== filterCat) return false;
-  if (filterHow && !(e.howShort||[]).includes(filterHow)) return false;
-  if (filterWhy && !(e.whyShort||[]).includes(filterWhy)) return false;
+  if (filterHow && !(e.howShort&&e.howShort.length?e.howShort:e.how||[]).includes(filterHow)) return false;
+  if (filterWhy && !(e.whyShort&&e.whyShort.length?e.whyShort:e.why||[]).includes(filterWhy)) return false;
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     const sources = (e.sources||[]).map(s=>`${s.work||''} ${s.author||''} ${s.example||''}`).join(' ');
@@ -821,8 +811,8 @@ function openAdd() {
   document.getElementById('fCat').value = 'trick';
   formHowTags=[]; formWhyTags=[]; formKwTags=[]; formSources=[];
   formHowShortTags=[]; formWhyShortTags=[];
+  formHowShortTags=[]; formWhyShortTags=[];
   makeTagInput('howTagWrap',formHowTags); makeTagInput('whyTagWrap',formWhyTags); makeTagInput('kwTagWrap',formKwTags);
-  makeTagInput('howShortTagWrap',formHowShortTags); makeTagInput('whyShortTagWrap',formWhyShortTags);
   renderSourceList();
   document.getElementById('saveMsg').textContent='';
   document.getElementById('fillPromptWrap').style.display='none';
@@ -844,7 +834,6 @@ function openEdit(id) {
   formHowShortTags=[...(e.howShort||[])]; formWhyShortTags=[...(e.whyShort||[])];
   formSources = (e.sources||[]).map(s=>({work:s.work||'',author:s.author||'',example:s.example||''}));
   makeTagInput('howTagWrap',formHowTags); makeTagInput('whyTagWrap',formWhyTags); makeTagInput('kwTagWrap',formKwTags);
-  makeTagInput('howShortTagWrap',formHowShortTags); makeTagInput('whyShortTagWrap',formWhyShortTags);
   renderSourceList();
   document.getElementById('saveMsg').textContent='';
   document.getElementById('fillPromptWrap').style.display='none';
@@ -902,8 +891,10 @@ ${authorLine}
   {
     "cat": "trick",
     "title": "条目名称",
-    "how": ["实现手法标签1", "实现手法标签2"],
-    "why": ["目的标签1"],
+    "how": ["实现手法完整描述"],
+    "howShort": ["手法缩略词，2-5字"],
+    "why": ["目的完整描述"],
+    "whyShort": ["目的缩略词，2-5字"],
     "summary": "一两句话概括核心逻辑",
     "detail": "更详细的分析，可为空字符串",
     "example": "该书中具体如何运用这个手法的概述",
@@ -920,7 +911,7 @@ function buildFillPrompt(title, cat) {
   const catLabel = CAT_LABEL[cat] || '诡计';
   const isTrick = cat === 'trick';
   const fence = '```';
-  const howWhy = isTrick ? '\n  "how": ["实现手法标签1", "实现手法标签2"],\n  "why": ["目的标签1", "目的标签2"],\n  "keywords": ["关键词1", "关键词2", "关键词3"],' : '';
+  const howWhy = isTrick ? '\n  "how": ["实现手法完整描述"],\n  "howShort": ["手法缩略词，2-5字"],\n  "why": ["目的完整描述"],\n  "whyShort": ["目的缩略词，2-5字"],\n  "keywords": ["关键词1", "关键词2"],' : '';
   return '你是一位推理小说专家。请分析以下推理' + catLabel + '，以 JSON 格式返回详细信息（直接输出 JSON，不要加任何说明文字）：\n\n条目名称：「' + title + '」\n类型：' + catLabel + '\n\n' + fence + 'json\n{\n  "summary": "一两句话概括核心逻辑",\n  "detail": "深入分析：原理、变体、适用条件、局限性等",' + howWhy + '\n}\n' + fence;
 }
 
@@ -1067,7 +1058,9 @@ document.getElementById('btnParseReply').addEventListener('click', () => {
     cat:      ['trick','concept','narrative'].includes(p.cat) ? p.cat : 'trick',
     title:    (p.title||'').trim(),
     how:      Array.isArray(p.how) ? p.how.map(s=>s.trim()).filter(Boolean) : [],
+    howShort: Array.isArray(p.howShort) ? p.howShort.map(s=>s.trim()).filter(Boolean) : [],
     why:      Array.isArray(p.why) ? p.why.map(s=>s.trim()).filter(Boolean) : [],
+    whyShort: Array.isArray(p.whyShort) ? p.whyShort.map(s=>s.trim()).filter(Boolean) : [],
     summary:  (p.summary||'').trim(),
     detail:   (p.detail||'').trim(),
     keywords: Array.isArray(p.keywords) ? p.keywords.map(s=>s.trim()).filter(Boolean) : [],
@@ -1312,9 +1305,6 @@ document.getElementById('whyFilter').addEventListener('change', e=>{ filterWhy=e
 // ══════════════════════════════════════════════
 //  AUTHORS & DETECTIVES STATE
 // ══════════════════════════════════════════════
-let authors = [];     // [{id, name, style, notes, detectiveIds:[]}]
-let detectives = [];  // [{id, name, authorName, trait, notes}]
-let nextAuthorId = 1, nextDetectiveId = 1;
 let editingAuthorId = null, editingDetectiveId = null;
 
 // ══════════════════════════════════════════════
@@ -1555,7 +1545,7 @@ buildPrompt = function(bookName, author) {
     '请输出以下三个JSON区块，直接输出不要任何说明：\n\n'+
     fence+'json entries\n'+
     '[\n'+
-    '  {\n    "cat": "trick",\n    "title": "简洁术语名",\n    "how": ["实现手法"],\n    "why": ["目的"],\n    "summary": "核心逻辑",\n    "detail": "深入分析",\n    "example": "书中具体运用（概述）",\n    "keywords": ["关键词"]\n  },\n'+
+    '  {\n    "cat": "trick",\n    "title": "简洁术语名",\n    "how": ["实现手法完整描述"],\n    "howShort": ["手法缩略词，2-5字"],\n    "why": ["目的完整描述"],\n    "whyShort": ["目的缩略词，2-5字"],\n    "summary": "核心逻辑",\n    "detail": "深入分析",\n    "example": "书中具体运用（概述）",\n    "keywords": ["关键词"]\n  },\n'+
     ']\n'+fence+'\n\n'+
     fence+'json author\n'+
     '{\n  "name": "'+(author||bookName)+'",\n  "style": "从本书中观察到的作者写作特质、惯用手法、叙事倾向（不超过200字，只写能从本书印证的内容）"\n}\n'+fence+'\n\n'+
@@ -1614,7 +1604,9 @@ document.getElementById('btnParseReply').addEventListener('click', function() {
     cat:      ['trick','concept','narrative'].includes(p.cat) ? p.cat : 'trick',
     title:    (p.title||'').trim(),
     how:      Array.isArray(p.how) ? p.how.map(s=>s.trim()).filter(Boolean) : [],
+    howShort: Array.isArray(p.howShort) ? p.howShort.map(s=>s.trim()).filter(Boolean) : [],
     why:      Array.isArray(p.why) ? p.why.map(s=>s.trim()).filter(Boolean) : [],
+    whyShort: Array.isArray(p.whyShort) ? p.whyShort.map(s=>s.trim()).filter(Boolean) : [],
     summary:  (p.summary||'').trim(),
     detail:   (p.detail||'').trim(),
     keywords: Array.isArray(p.keywords) ? p.keywords.map(s=>s.trim()).filter(Boolean) : [],
@@ -1745,8 +1737,8 @@ function buildMergePrompt() {
     '{\n' +
     '  "cat": "trick",\n' +
     '  "title": "合并后的条目名称",\n' +
-    '  "how": ["手法标签"],\n' +
-    '  "why": ["目的标签"],\n' +
+    '  "how": ["实现手法描述"],\n' +
+    '  "why": ["目的描述"],\n' +
     '  "summary": "合并后的简述",\n' +
     '  "detail": "合并后的详细分析",\n' +
     '  "keywords": ["关键词"],\n' +
@@ -1816,7 +1808,6 @@ document.getElementById('btnConfirmMerge').addEventListener('click', async () =>
     title:    (mergedEntry.title||'').trim(),
     how:      Array.isArray(mergedEntry.how) ? mergedEntry.how : [],
     why:      Array.isArray(mergedEntry.why) ? mergedEntry.why : [],
-    howShort: [], whyShort: [],
     summary:  (mergedEntry.summary||'').trim(),
     detail:   (mergedEntry.detail||'').trim(),
     sources:  mergedSources,

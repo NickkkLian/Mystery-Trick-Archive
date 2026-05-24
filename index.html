@@ -347,12 +347,24 @@
           <div class="f-group">
             <label class="f-label">手法 How</label>
             <div class="tag-input-wrap" id="howTagWrap"></div>
-            <p class="f-hint">回车添加，例：时间差、身份混淆</p>
+            <p class="f-hint">详细描述，回车添加</p>
           </div>
           <div class="f-group">
             <label class="f-label">目的 Why</label>
             <div class="tag-input-wrap" id="whyTagWrap"></div>
-            <p class="f-hint">回车添加，例：构建不在场、制造密室</p>
+            <p class="f-hint">详细描述，回车添加</p>
+          </div>
+        </div>
+        <div class="f-row">
+          <div class="f-group">
+            <label class="f-label">手法缩略（用于筛选）</label>
+            <div class="tag-input-wrap" id="howShortTagWrap"></div>
+            <p class="f-hint">简短标签，回车添加，例：时间差</p>
+          </div>
+          <div class="f-group">
+            <label class="f-label">目的缩略（用于筛选）</label>
+            <div class="tag-input-wrap" id="whyShortTagWrap"></div>
+            <p class="f-hint">简短标签，回车添加，例：制造密室</p>
           </div>
         </div>
       </div>
@@ -506,6 +518,7 @@ let entries = [], fileSha = null, nextId = 1;
 let filterCat = 'all', filterHow = '', filterWhy = '', searchQuery = '';
 let editingId = null;
 let formHowTags = [], formWhyTags = [], formKwTags = [];
+let formHowShortTags = [], formWhyShortTags = [];
 let parsedImports = []; // entries parsed from Claude reply
 
 // ══════════════════════════════════════════════
@@ -571,8 +584,8 @@ const CAT_CLASS = { trick:'cat-trick', concept:'cat-concept', narrative:'cat-nar
 // ══════════════════════════════════════════════
 function rebuildDropdowns() {
   const tricks = entries.filter(e => e.cat === 'trick');
-  const hows = [...new Set(tricks.flatMap(e => e.how||[]))].sort();
-  const whys = [...new Set(tricks.flatMap(e => e.why||[]))].sort();
+  const hows = [...new Set(tricks.flatMap(e => (e.howShort&&e.howShort.length?e.howShort:e.how)||[]))].sort();
+  const whys = [...new Set(tricks.flatMap(e => (e.whyShort&&e.whyShort.length?e.whyShort:e.why)||[]))].sort();
   const hSel = document.getElementById('howFilter'), wSel = document.getElementById('whyFilter');
   const ch = hSel.value, cw = wSel.value;
   hSel.innerHTML = '<option value="">— 全部手法 —</option>' + hows.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('');
@@ -586,8 +599,8 @@ function rebuildDropdowns() {
 // ══════════════════════════════════════════════
 function matchEntry(e) {
   if (filterCat !== 'all' && e.cat !== filterCat) return false;
-  if (filterHow && !(e.how||[]).includes(filterHow)) return false;
-  if (filterWhy && !(e.why||[]).includes(filterWhy)) return false;
+  if (filterHow && !(e.howShort&&e.howShort.length ? e.howShort : e.how||[]).includes(filterHow)) return false;
+  if (filterWhy && !(e.whyShort&&e.whyShort.length ? e.whyShort : e.why||[]).includes(filterWhy)) return false;
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     const sources = (e.sources||[]).map(s=>`${s.work||''} ${s.author||''} ${s.example||''}`).join(' ');
@@ -778,7 +791,9 @@ function openAdd() {
   ['fTitle','fSummary','fDetail','fNotes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fCat').value = 'trick';
   formHowTags=[]; formWhyTags=[]; formKwTags=[]; formSources=[];
+  formHowShortTags=[]; formWhyShortTags=[];
   makeTagInput('howTagWrap',formHowTags); makeTagInput('whyTagWrap',formWhyTags); makeTagInput('kwTagWrap',formKwTags);
+  makeTagInput('howShortTagWrap',formHowShortTags); makeTagInput('whyShortTagWrap',formWhyShortTags);
   renderSourceList();
   document.getElementById('saveMsg').textContent='';
   document.getElementById('fillPromptWrap').style.display='none';
@@ -797,8 +812,10 @@ function openEdit(id) {
   document.getElementById('fDetail').value  = e.detail||'';
   document.getElementById('fNotes').value   = e.notes||'';
   formHowTags=[...(e.how||[])]; formWhyTags=[...(e.why||[])]; formKwTags=[...(e.keywords||[])];
+  formHowShortTags=[...(e.howShort||[])]; formWhyShortTags=[...(e.whyShort||[])];
   formSources = (e.sources||[]).map(s=>({work:s.work||'',author:s.author||'',example:s.example||''}));
   makeTagInput('howTagWrap',formHowTags); makeTagInput('whyTagWrap',formWhyTags); makeTagInput('kwTagWrap',formKwTags);
+  makeTagInput('howShortTagWrap',formHowShortTags); makeTagInput('whyShortTagWrap',formWhyShortTags);
   renderSourceList();
   document.getElementById('saveMsg').textContent='';
   document.getElementById('fillPromptWrap').style.display='none';
@@ -814,7 +831,9 @@ async function submitForm() {
   const cat = document.getElementById('fCat').value;
   const entry = {
     id: editingId||nextId++, cat,
-    title, how: cat==='trick'?[...formHowTags]:[], why: cat==='trick'?[...formWhyTags]:[], summary,
+    title, how: cat==='trick'?[...formHowTags]:[], why: cat==='trick'?[...formWhyTags]:[],
+    howShort: cat==='trick'?[...formHowShortTags]:[], whyShort: cat==='trick'?[...formWhyShortTags]:[],
+    summary,
     detail: document.getElementById('fDetail').value.trim(),
     sources: formSources.filter(s=>s.work||s.example).map(s=>({work:s.work,author:s.author,example:s.example})),
     keywords: cat==='trick'?[...formKwTags]:[],
@@ -1495,15 +1514,19 @@ buildPrompt = function(bookName, author) {
 function parseImportReply(raw) {
   const result = { entries: null, author: null, detectives: null };
 
-  const entriesM = raw.match(/```json entries\s*([\s\S]*?)```/);
-  const authorM  = raw.match(/```json author\s*([\s\S]*?)```/);
-  const detectM  = raw.match(/```json detective\s*([\s\S]*?)```/);
+  // Match fenced blocks with optional label: ```json entries, ```json author, ```json detective
+  // Also handle ~~~, and labels on same line as fence
+  const fence = /(?:```|~~~)json\s+(\w+)\s*([\s\S]*?)(?:```|~~~)/g;
+  let m;
+  while ((m = fence.exec(raw)) !== null) {
+    const label = m[1].toLowerCase();
+    const content = parseJson(m[2].trim());
+    if (label === 'entries')   result.entries    = content;
+    if (label === 'author')    result.author     = content;
+    if (label === 'detective') result.detectives = content;
+  }
 
-  if (entriesM) result.entries  = parseJson(entriesM[1].trim());
-  if (authorM)  result.author   = parseJson(authorM[1].trim());
-  if (detectM)  result.detectives = parseJson(detectM[1].trim());
-
-  // Fallback: if no labeled blocks, try original single-array parse
+  // Fallback: no labeled blocks → try parsing entire reply as plain JSON array
   if (!result.entries) result.entries = parseJson(raw);
 
   return result;

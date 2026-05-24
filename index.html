@@ -853,19 +853,26 @@ document.getElementById('btnCopyFillPrompt').addEventListener('click', () => {
 });
 
 document.getElementById('btnApplyFill').addEventListener('click', () => {
-  const raw = document.getElementById('fillPasteArea').value;
+  const raw = document.getElementById('fillPasteArea').value.trim();
   const errEl = document.getElementById('fillErr');
 
-  const p = robustParseObject(raw);
-  if (!p) { errEl.textContent='✕ 未找到可解析的 JSON'; errEl.style.display='inline'; return; }
-  errEl.style.display='none';
+  // Parse — accept both {} object and [{...}] array (take first element)
+  let result = robustParseObject(raw);
+  if (Array.isArray(result)) result = result[0] || null;
+  if (!result || typeof result !== 'object') {
+    errEl.textContent = '✕ 未找到可解析的 JSON，请检查回复格式';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
 
-  if (p.summary)  document.getElementById('fSummary').value = p.summary;
-  if (p.detail)   document.getElementById('fDetail').value  = p.detail;
-  if (Array.isArray(p.how))      { formHowTags.length=0; (p.how||[]).forEach(v=>{if(!formHowTags.includes(v))formHowTags.push(v);}); makeTagInput('howTagWrap',formHowTags); }
-  if (Array.isArray(p.why))      { formWhyTags.length=0; (p.why||[]).forEach(v=>{if(!formWhyTags.includes(v))formWhyTags.push(v);}); makeTagInput('whyTagWrap',formWhyTags); }
-  if (Array.isArray(p.keywords)) { formKwTags.length=0;  (p.keywords||[]).forEach(v=>{if(!formKwTags.includes(v))formKwTags.push(v);}); makeTagInput('kwTagWrap',formKwTags); }
+  if (result.summary)  document.getElementById('fSummary').value = result.summary;
+  if (result.detail)   document.getElementById('fDetail').value  = result.detail;
+  if (Array.isArray(result.how))      { formHowTags.length=0; result.how.forEach(v=>{if(v&&!formHowTags.includes(v))formHowTags.push(v);}); makeTagInput('howTagWrap',formHowTags); }
+  if (Array.isArray(result.why))      { formWhyTags.length=0; result.why.forEach(v=>{if(v&&!formWhyTags.includes(v))formWhyTags.push(v);}); makeTagInput('whyTagWrap',formWhyTags); }
+  if (Array.isArray(result.keywords)) { formKwTags.length=0;  result.keywords.forEach(v=>{if(v&&!formKwTags.includes(v))formKwTags.push(v);}); makeTagInput('kwTagWrap',formKwTags); }
 
+  // Collapse the fill panel only on success
   document.getElementById('fillPromptWrap').style.display = 'none';
 });
 

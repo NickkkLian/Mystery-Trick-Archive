@@ -885,7 +885,14 @@ function renderPreview(items) {
     <div class="preview-item selected" id="preview-${i}">
       <input type="checkbox" class="preview-check" id="pcheck-${i}" checked onchange="togglePreview(${i})" />
       <div class="preview-info">
-        <div class="preview-title">${esc(e.title)} <span style="font-family:'Special Elite',monospace;font-size:9px;font-weight:400;opacity:.7">${CAT_LABEL[e.cat]||e.cat}</span></div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+          <div class="preview-title">${esc(e.title)}</div>
+          <select class="filter-select" style="font-size:11px;padding:2px 22px 2px 7px;box-shadow:none" onchange="parsedImports[${i}].cat=this.value">
+            <option value="trick"   ${e.cat==='trick'   ?'selected':''}>诡计</option>
+            <option value="concept" ${e.cat==='concept' ?'selected':''}>概念</option>
+            <option value="narrative" ${e.cat==='narrative'?'selected':''}>叙述手法</option>
+          </select>
+        </div>
         <div class="preview-meta">${[...(e.how||[]),...(e.why||[])].slice(0,4).join(' · ')}</div>
         <div class="preview-summary">${esc(e.summary)}</div>
       </div>

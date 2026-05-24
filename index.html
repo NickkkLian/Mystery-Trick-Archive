@@ -1328,17 +1328,9 @@ document.getElementById('btnDoImport').addEventListener('click', async () => {
 
   const btn = document.getElementById('btnDoImport'); btn.disabled=true; btn.textContent='保存中…';
 
-  // Import entries
+  // Import entries — always create new, let user decide to merge manually
   selected.forEach(e => {
-    const existing = entries.find(x => x.title.trim() === e.title.trim());
-    if (existing) {
-      e.sources.forEach(s => {
-        const already = (existing.sources||[]).some(es => es.work === s.work);
-        if (!already) { existing.sources = existing.sources||[]; existing.sources.push(s); }
-      });
-    } else {
-      entries.unshift({ id: nextId++, date: today(), ...e });
-    }
+    entries.unshift({ id: nextId++, date: today(), ...e });
   });
 
   // Import author

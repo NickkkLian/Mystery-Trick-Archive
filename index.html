@@ -1712,19 +1712,21 @@ buildPrompt = function(bookName, author) {
 
 【分类定义】
 trick（诡计）：凶手实施犯罪的手法。必须可跨作品复用，不记录一次性情节细节。
-concept（概念）：逻辑学、哲学或推理理论中已有命名的原则，如"奥卡姆剃刀""演绎法""契科夫之枪"。不得编造新概念。
+concept（概念）：逻辑学、哲学或推理理论中已有命名的原则，例如"奥卡姆剃刀""假说演绎法""契科夫之枪""演绎法"。不得编造新概念，concept 条目必须是现实中真实存在的命名术语。
 narrative（叙述手法）：作者控制叙事信息的技巧。必须使用推理界已有术语，如"不可靠叙述者""叙述性诡计""限制视角"。不得自创词汇。
-detective-move（侦探做法）：侦探主动采取的有分析价值的独特行动。常规操作（如召集众人揭秘、公开推理）不值得记录。
-case-logic（推理逻辑）：某案的核心推理链条，要抓住关键逻辑跳跃，而非情节流水账。
+detective-move（侦探做法）：侦探为达到特定目的而采取的非常规行动，如"侦探诱供""侦探以自身为诱饵""侦探亲手处决凶手"。常规操作（公开揭秘、访问证人）不值得记录。
+case-logic（推理逻辑）：某案的核心推理链条，抓住关键逻辑跳跃，而非情节流水账。
 
 【判断方法】
 凶手做的 → trick / 侦探做的 → detective-move / 作者做的 → narrative / 已命名理论 → concept / 某案推理过程 → case-logic
 
-【写作要求】
-- title 和 summary：通用描述，不出现具体人名、书名（这些只放 example）
-- 使用推理界已有术语，不自创新词
-- trick 和 narrative 可合并的不拆分
-- 作者特质和侦探特质只写在后面的 author/detective 区块
+【硬性规则】
+1. 一个条目只表达一个独立概念，不合并两件不同的事
+2. title 优先使用推理界已有术语；无现成术语时用最精炼的描述，不堆砌修饰语
+3. title 和 summary 不出现具体人名、书名（只放 example）；人名统一用中文
+4. 使用推理界已有术语，不自创新词
+5. trick 和 narrative 可合并的不拆分
+6. 作者特质和侦探特质只写在 author/detective 区块
 
 请输出以下三个 JSON 区块，直接输出不要任何说明：
 
@@ -1732,16 +1734,16 @@ ${fence}json entries
 [
   {
     "cat": "trick/concept/narrative/detective-move/case-logic",
-    "title": "简洁准确的名称",
+    "title": "简洁名称，不超过10字",
     "how": ["实现手法（仅 trick，其余 []）"],
     "howShort": ["手法缩略词（仅 trick，其余 []）"],
     "why": ["目的（仅 trick，其余 []）"],
     "whyShort": ["目的缩略词（仅 trick，其余 []）"],
-    "summary": "一两句通用描述，不含具体人名",
+    "summary": "一两句通用描述，不含具体人名，用中文",
     "detail": "深入分析",
     "example": "书中具体运用，可含人名案件",
     "keywords": ["关键词（仅 trick，其余 []）"],
-    "detectiveName": "侦探名（仅 detective-move，其余 ''）",
+    "detectiveName": "侦探中文名（仅 detective-move，其余 ''）",
     "steps": "推理步骤每行一步（仅 case-logic，其余 ''）"
   }
 ]
@@ -1757,7 +1759,7 @@ ${fence}
 ${fence}json detective
 [
   {
-    "name": "侦探姓名",
+    "name": "侦探中文名",
     "authorName": "${author || ''}",
     "trait": "本书中的推理方式与性格特质"
   }

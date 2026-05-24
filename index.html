@@ -805,7 +805,7 @@ function renderTricks() {
     const srcNames = [...new Set((e.sources||[]).filter(s=>s.work).map(s=>s.work))];
     const srcLine = srcNames.length ? srcNames.map(s=>`《${esc(s)}》`).join(' ') : '';
     return `
-    <div class="card" onclick="openDetail(${e.id})">
+    <div class="card" data-id="${e.id}" onclick="openDetail(${e.id})">
       <div class="card-actions">
         <button class="card-btn" onclick="event.stopPropagation();openEdit(${e.id})">✎</button>
         <button class="card-btn" onclick="event.stopPropagation();delEntry(${e.id})">✕</button>
@@ -1708,47 +1708,63 @@ buildPrompt = function(bookName, author) {
   const authorLine = author ? '作者：'+author : '';
   const fence = '```';
 
-  return '你是一位推理小说专家。请分析以下书目，严格按照以下规则输出：\n\n'+
-    '【五个分类的明确定义】\n'+
-    '- trick（诡计）：凶手实施犯罪时使用的具体手法，针对的是"犯罪是怎么做到的"。必须是可跨作品复用的通用手法。例："利用列车时刻表制造不在场证明"、"借助双胞胎身份互换"\n'+
-    '- concept（概念）：推理文学中已被命名、独立存在的理论或原则，通常来自逻辑学、哲学或推理理论。必须是真实存在的术语，不得自行创造。例："奥卡姆剃刀"、"契科夫之枪"、"假说演绎法"、"汉隆剃刀"、"演绎法"\n'+
-    '- narrative（叙述手法）：作者在叙事层面有意使用的写作技巧，针对的是"作者是怎么写的"。包括叙述视角技巧、结构技巧、信息控制等。例："不可靠叙述者"、"事后回溯写作结构"、"限制视角制造信息不对称"、"叙述性诡计"\n'+
-    '- detective-move（侦探做法）：侦探在破案过程中主动采取的行动或策略，针对的是"侦探做了什么"。例："侦探故意透露假证据引凶手露馅"、"侦探以自身为诱饵"、"侦探杀死凶手以终止连环杀人"。注意：这类条目可以是具体案件中的一次行动，无需跨作品复用\n'+
-    '- case-logic（推理逻辑）：某个具体案件的完整推理链条，从发现线索到得出结论的步骤。无需跨作品复用\n\n'+
-    '【分类判断原则】\n'+
-    '- 问"谁做了什么"：凶手做的 → trick；侦探做的 → detective-move；作者做的 → narrative\n'+
-    '- 是已命名理论 → concept；是某案推理过程 → case-logic\n'+
-    '- trick和narrative必须是可复用的通用手法；detective-move和case-logic可以是具体的一次事件\n\n'+
-    '【其他规则】\n'+
-    '1. 条目名称简洁，优先使用推理界约定俗成的术语，不加破折号解释，不堆砌修饰语\n'+
-    '2. 概念（concept）必须是已存在的命名术语，不得编造\n'+
-    '3. trick和narrative可合并的不拆分\n'+
-    '4. title和summary必须用通用描述，不出现具体人名、书名、案件名——这些只放在example字段。例：title应为"侦探亲手处决凶手"而非"波洛亲手处决凶手"\n'+
-    '5. 作者特质和侦探特质只写在对应区块，不要写入条目\n\n'+
-    '书名：《'+bookName+'》\n'+authorLine+'\n\n'+
-    '请输出以下三个JSON区块，直接输出不要任何说明：\n\n'+
-    fence+'json entries\n'+
-    '[\n'+
-    '  {\n'+
-    '    "cat": "trick/concept/narrative/detective-move/case-logic",\n'+
-    '    "title": "简洁名称",\n'+
-    '    "how": ["实现手法完整描述（仅trick填写，其余留空数组）"],\n'+
-    '    "howShort": ["手法缩略词2-5字（仅trick）"],\n'+
-    '    "why": ["目的完整描述（仅trick填写，其余留空数组）"],\n'+
-    '    "whyShort": ["目的缩略词2-5字（仅trick）"],\n'+
-    '    "summary": "一两句核心描述",\n'+
-    '    "detail": "深入分析",\n'+
-    '    "example": "书中具体运用概述",\n'+
-    '    "keywords": ["关键词（仅trick填写，其余留空数组）"],\n'+
-    '    "detectiveName": "侦探名（仅detective-move填写，其余留空字符串）",\n'+
-    '    "steps": "每行一步的推理链条（仅case-logic填写，其余留空字符串）"\n'+
-    '  }\n'+
-    ']\n'+fence+'\n\n'+
-    fence+'json author\n'+
-    '{\n  "name": "'+(author||bookName)+'",\n  "style": "从本书观察到的作者写作特质、惯用手法、叙事倾向（不超过200字，只写能从本书印证的内容）"\n}\n'+fence+'\n\n'+
-    fence+'json detective\n'+
-    '[\n  {\n    "name": "侦探姓名",\n    "authorName": "'+(author||'')+'",\n    "trait": "在本书中展现的推理方式、性格特质、标志性手法"\n  }\n]\n'+fence+'\n\n'+
-    '如果本书没有固定侦探，detective区块输出空数组[]。';
+  return `你是一位推理小说专家。请分析《${bookName}》${author ? '（作者：'+author+'）' : ''}，提取值得记录的条目。
+
+【分类定义】
+trick（诡计）：凶手实施犯罪的手法。必须可跨作品复用，不记录一次性情节细节。
+concept（概念）：逻辑学、哲学或推理理论中已有命名的原则，如"奥卡姆剃刀""演绎法""契科夫之枪"。不得编造新概念。
+narrative（叙述手法）：作者控制叙事信息的技巧。必须使用推理界已有术语，如"不可靠叙述者""叙述性诡计""限制视角"。不得自创词汇。
+detective-move（侦探做法）：侦探主动采取的有分析价值的独特行动。常规操作（如召集众人揭秘、公开推理）不值得记录。
+case-logic（推理逻辑）：某案的核心推理链条，要抓住关键逻辑跳跃，而非情节流水账。
+
+【判断方法】
+凶手做的 → trick / 侦探做的 → detective-move / 作者做的 → narrative / 已命名理论 → concept / 某案推理过程 → case-logic
+
+【写作要求】
+- title 和 summary：通用描述，不出现具体人名、书名（这些只放 example）
+- 使用推理界已有术语，不自创新词
+- trick 和 narrative 可合并的不拆分
+- 作者特质和侦探特质只写在后面的 author/detective 区块
+
+请输出以下三个 JSON 区块，直接输出不要任何说明：
+
+${fence}json entries
+[
+  {
+    "cat": "trick/concept/narrative/detective-move/case-logic",
+    "title": "简洁准确的名称",
+    "how": ["实现手法（仅 trick，其余 []）"],
+    "howShort": ["手法缩略词（仅 trick，其余 []）"],
+    "why": ["目的（仅 trick，其余 []）"],
+    "whyShort": ["目的缩略词（仅 trick，其余 []）"],
+    "summary": "一两句通用描述，不含具体人名",
+    "detail": "深入分析",
+    "example": "书中具体运用，可含人名案件",
+    "keywords": ["关键词（仅 trick，其余 []）"],
+    "detectiveName": "侦探名（仅 detective-move，其余 ''）",
+    "steps": "推理步骤每行一步（仅 case-logic，其余 ''）"
+  }
+]
+${fence}
+
+${fence}json author
+{
+  "name": "${author || bookName}",
+  "style": "从本书观察到的写作特质（不超过200字，只写本书能印证的）"
+}
+${fence}
+
+${fence}json detective
+[
+  {
+    "name": "侦探姓名",
+    "authorName": "${author || ''}",
+    "trait": "本书中的推理方式与性格特质"
+  }
+]
+${fence}
+
+没有固定侦探则 detective 输出空数组 []。`;
 };
 
 // Parse the three-block reply

@@ -1041,60 +1041,17 @@ function parseJson(raw) {
 // ══════════════════════════════════════════════
 //  IMPORT: PARSE & PREVIEW
 // ══════════════════════════════════════════════
-document.getElementById('btnParseReply').addEventListener('click', () => {
-  const raw = document.getElementById('pasteArea').value;
-  const errEl = document.getElementById('parseErr');
 
-  let parsed = parseJson(raw);
-  if (parsed && !Array.isArray(parsed)) parsed = [parsed];
-  if (!parsed || !parsed.length) { errEl.textContent='✕ 未找到可解析的 JSON'; errEl.style.display='block'; return; }
-  errEl.style.display='none';
-
-  const bookName = document.getElementById('importBookName').value.trim();
-  const author   = document.getElementById('importAuthor').value.trim();
-
-  // Attach source info
-  parsedImports = parsed.map(p => ({
-    cat:      ['trick','concept','narrative'].includes(p.cat) ? p.cat : 'trick',
-    title:    (p.title||'').trim(),
-    how:      Array.isArray(p.how) ? p.how.map(s=>s.trim()).filter(Boolean) : [],
-    howShort: Array.isArray(p.howShort) ? p.howShort.map(s=>s.trim()).filter(Boolean) : [],
-    why:      Array.isArray(p.why) ? p.why.map(s=>s.trim()).filter(Boolean) : [],
-    whyShort: Array.isArray(p.whyShort) ? p.whyShort.map(s=>s.trim()).filter(Boolean) : [],
-    summary:  (p.summary||'').trim(),
-    detail:   (p.detail||'').trim(),
-    keywords: Array.isArray(p.keywords) ? p.keywords.map(s=>s.trim()).filter(Boolean) : [],
-    sources:  [{ work: bookName, author, example: (p.example||'').trim() }],
-  })).filter(p => p.title && p.summary);
-
-  if (!parsedImports.length) { errEl.textContent='✕ 没有找到有效条目（需要有 title 和 summary）'; errEl.style.display='block'; return; }
-
-  renderPreview(parsedImports);
-  showImportStep(2);
-});
-
-// Simple string similarity: count shared characters / max length
-function strSimilarity(a, b) {
-  a = a.toLowerCase().replace(/\s/g,'');
-  b = b.toLowerCase().replace(/\s/g,'');
-  if (a === b) return 1;
-  if (!a || !b) return 0;
-  // Check if one contains the other
-  if (a.includes(b) || b.includes(a)) return 0.85;
-  // Count shared chars
-  const sa = new Set(a), sb = new Set(b);
-  let shared = 0;
-  sa.forEach(c => { if (sb.has(c)) shared++; });
-  return shared / Math.max(sa.size, sb.size);
+function updateSelectedCount() {
+  const total = parsedImports.length;
+  const selected = document.querySelectorAll('.preview-check:checked').length;
+  document.getElementById('selectedCount').textContent = `${selected} / ${total} 已选`;
 }
 
-function findSimilarEntry(title) {
-  let best = null, bestScore = 0;
-  entries.forEach(e => {
-    const score = strSimilarity(title, e.title);
-    if (score > bestScore) { bestScore = score; best = e; }
-  });
-  return bestScore >= 0.6 ? { entry: best, score: bestScore } : null;
+function togglePreview(i) {
+  const checked = document.getElementById('pcheck-'+i).checked;
+  document.getElementById('preview-'+i).classList.toggle('selected', checked);
+  updateSelectedCount();
 }
 
 function renderPreview(items) {
@@ -1105,9 +1062,7 @@ function renderPreview(items) {
   document.getElementById('previewList').innerHTML = items.map((e,i) => {
     const similar = findSimilarEntry(e.title);
     const similarWarn = similar
-      ? `<div style="font-size:11px;color:var(--gold);margin-top:4px;font-family:'Special Elite',monospace;letter-spacing:.5px">
-           ⚠ 疑似与已有条目重复：「${esc(similar.entry.title)}」
-         </div>`
+      ? `<div style="font-size:11px;color:var(--gold);margin-top:4px;font-family:'Special Elite',monospace;letter-spacing:.5px">⚠ 疑似与已有条目重复：「${esc(similar.entry.title)}」</div>`
       : '';
     return `
     <div class="preview-item selected" id="preview-${i}">
@@ -1128,18 +1083,6 @@ function renderPreview(items) {
     </div>`;
   }).join('');
   updateSelectedCount();
-}
-
-function togglePreview(i) {
-  const checked = document.getElementById('pcheck-'+i).checked;
-  document.getElementById('preview-'+i).classList.toggle('selected', checked);
-  updateSelectedCount();
-}
-
-function updateSelectedCount() {
-  const total = parsedImports.length;
-  const selected = document.querySelectorAll('.preview-check:checked').length;
-  document.getElementById('selectedCount').textContent = `${selected} / ${total} 已选`;
 }
 
 document.getElementById('btnSelectAll').addEventListener('click', () => {

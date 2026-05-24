@@ -825,20 +825,9 @@ cat 只能是 "trick"、"concept"、"narrative" 之一。
 function buildFillPrompt(title, cat) {
   const catLabel = CAT_LABEL[cat] || '诡计';
   const isTrick = cat === 'trick';
-  return `你是一位推理小说专家。请分析以下推理${catLabel}，以 JSON 格式返回详细信息（直接输出 JSON，不要加任何说明文字）：
-
-条目名称：「${title}」
-类型：${catLabel}
-
-\`\`\`json
-{
-  "summary": "一两句话概括核心逻辑",
-  "detail": "深入分析：原理、变体、适用条件、局限性等",${isTrick ? `
-  "how": ["实现手法标签1", "实现手法标签2"],
-  "why": ["目的标签1", "目的标签2"],` : ''}
-  "keywords": ["关键词1", "关键词2", "关键词3"]
-}
-\`\`\``;
+  const fence = '```';
+  const howWhy = isTrick ? '\n  "how": ["实现手法标签1", "实现手法标签2"],\n  "why": ["目的标签1", "目的标签2"],' : '';
+  return '你是一位推理小说专家。请分析以下推理' + catLabel + '，以 JSON 格式返回详细信息（直接输出 JSON，不要加任何说明文字）：\n\n条目名称：「' + title + '」\n类型：' + catLabel + '\n\n' + fence + 'json\n{\n  "summary": "一两句话概括核心逻辑",\n  "detail": "深入分析：原理、变体、适用条件、局限性等",' + howWhy + '\n  "keywords": ["关键词1", "关键词2", "关键词3"]\n}\n' + fence;
 }
 
 // Wire up fill-prompt button
@@ -885,6 +874,8 @@ document.getElementById('btnApplyFill').addEventListener('click', () => {
 
   document.getElementById('fillPromptWrap').style.display = 'none';
 });
+
+function openImport() {
   document.getElementById('importBookName').value='';
   document.getElementById('importAuthor').value='';
   document.getElementById('pasteArea').value='';

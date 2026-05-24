@@ -354,11 +354,13 @@
       <hr class="f-hr" /><p class="f-section">来源示例（可多条）</p>
       <div class="source-list" id="sourceList"></div>
       <button class="btn-add-source" id="btnAddSource">＋ 添加来源示例</button>
-      <hr class="f-hr" />
-      <div class="f-group">
-        <label class="f-label">关键词</label>
-        <div class="tag-input-wrap" id="kwTagWrap"></div>
-        <p class="f-hint">回车添加</p>
+      <div id="kwSection">
+        <hr class="f-hr" />
+        <div class="f-group">
+          <label class="f-label">关键词</label>
+          <div class="tag-input-wrap" id="kwTagWrap"></div>
+          <p class="f-hint">回车添加</p>
+        </div>
       </div>
       <div class="f-actions">
         <button class="btn-submit" id="btnSubmit">归档 · ARCHIVE</button>
@@ -531,8 +533,9 @@ const CAT_CLASS = { trick:'cat-trick', concept:'cat-concept', narrative:'cat-nar
 //  DROPDOWNS
 // ══════════════════════════════════════════════
 function rebuildDropdowns() {
-  const hows = [...new Set(entries.flatMap(e => e.how||[]))].sort();
-  const whys = [...new Set(entries.flatMap(e => e.why||[]))].sort();
+  const tricks = entries.filter(e => e.cat === 'trick');
+  const hows = [...new Set(tricks.flatMap(e => e.how||[]))].sort();
+  const whys = [...new Set(tricks.flatMap(e => e.why||[]))].sort();
   const hSel = document.getElementById('howFilter'), wSel = document.getElementById('whyFilter');
   const ch = hSel.value, cw = wSel.value;
   hSel.innerHTML = '<option value="">— 全部手法 —</option>' + hows.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('');
@@ -726,7 +729,9 @@ function removeSource(i) { formSources.splice(i,1); renderSourceList(); }
 // ══════════════════════════════════════════════
 function updateHowWhyVisibility() {
   const cat = document.getElementById('fCat').value;
-  document.getElementById('howWhySection').style.display = cat === 'trick' ? '' : 'none';
+  const isTrick = cat === 'trick';
+  document.getElementById('howWhySection').style.display = isTrick ? '' : 'none';
+  document.getElementById('kwSection').style.display = isTrick ? '' : 'none';
 }
 
 function openAdd() {
@@ -826,8 +831,8 @@ function buildFillPrompt(title, cat) {
   const catLabel = CAT_LABEL[cat] || '诡计';
   const isTrick = cat === 'trick';
   const fence = '```';
-  const howWhy = isTrick ? '\n  "how": ["实现手法标签1", "实现手法标签2"],\n  "why": ["目的标签1", "目的标签2"],' : '';
-  return '你是一位推理小说专家。请分析以下推理' + catLabel + '，以 JSON 格式返回详细信息（直接输出 JSON，不要加任何说明文字）：\n\n条目名称：「' + title + '」\n类型：' + catLabel + '\n\n' + fence + 'json\n{\n  "summary": "一两句话概括核心逻辑",\n  "detail": "深入分析：原理、变体、适用条件、局限性等",' + howWhy + '\n  "keywords": ["关键词1", "关键词2", "关键词3"]\n}\n' + fence;
+  const howWhy = isTrick ? '\n  "how": ["实现手法标签1", "实现手法标签2"],\n  "why": ["目的标签1", "目的标签2"],\n  "keywords": ["关键词1", "关键词2", "关键词3"],' : '';
+  return '你是一位推理小说专家。请分析以下推理' + catLabel + '，以 JSON 格式返回详细信息（直接输出 JSON，不要加任何说明文字）：\n\n条目名称：「' + title + '」\n类型：' + catLabel + '\n\n' + fence + 'json\n{\n  "summary": "一两句话概括核心逻辑",\n  "detail": "深入分析：原理、变体、适用条件、局限性等",' + howWhy + '\n}\n' + fence;
 }
 
 // Wire up fill-prompt button

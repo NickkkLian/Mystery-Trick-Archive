@@ -1345,9 +1345,14 @@ document.getElementById('btnDoImport').addEventListener('click', async () => {
   if (window._pendingAuthor && document.getElementById('importAuthorCheck')?.checked) {
     const a = window._pendingAuthor;
     const name = (a.name||'').trim() || window._pendingAuthorName;
+    const bk = window._pendingBookName || '';
     if (name) {
       const existing = authors.find(x=>x.name===name);
-      if (existing) { if (a.style && !existing.style) existing.style = a.style; }
+      if (existing) {
+        if (a.style) existing.style = existing.style
+          ? existing.style + '\n\n【' + bk + '】' + a.style
+          : a.style;
+      }
       else authors.push({id:nextAuthorId++, name, style:a.style||'', notes:''});
     }
   }
@@ -1358,8 +1363,13 @@ document.getElementById('btnDoImport').addEventListener('click', async () => {
     if (!cb || !cb.checked) return;
     const name = (d.name||'').trim(); if(!name) return;
     const aName = (d.authorName||'').trim() || window._pendingAuthorName;
+    const bk = window._pendingBookName || '';
     const existing = detectives.find(x=>x.name===name&&x.authorName===aName);
-    if (existing) { if (d.trait && !existing.trait) existing.trait = d.trait; }
+    if (existing) {
+      if (d.trait) existing.trait = existing.trait
+        ? existing.trait + '\n\n【' + bk + '】' + d.trait
+        : d.trait;
+    }
     else detectives.push({id:nextDetectiveId++, name, authorName:aName, trait:d.trait||'', notes:''});
   });
 

@@ -249,6 +249,19 @@
     .coll-link-gold{color:var(--gold);background:var(--gold-faint);border-color:var(--gold);}
     .coll-link-gold:hover{background:var(--gold);color:var(--ink);}
 
+
+    /* ── MERGE MODE ── */
+    .merge-bar{max-width:1000px;margin:0 auto 12px;display:none;align-items:center;gap:10px;background:var(--paper);border:1.5px solid var(--gold);padding:8px 14px;box-shadow:3px 3px 0 var(--gold-faint);}
+    .merge-bar.active{display:flex;}
+    .merge-bar-label{font-family:'Special Elite',monospace;font-size:10px;letter-spacing:2px;color:var(--gold);}
+    .card.merge-selectable{cursor:pointer;}
+    .card.merge-selectable::after{content:'';position:absolute;inset:0;border:2px solid transparent;pointer-events:none;transition:border-color .15s;}
+    .card.merge-selected::after{border-color:var(--gold) !important;}
+    .card.merge-selectable:hover::after{border-color:rgba(184,150,46,.4);}
+    .btn-merge{background:var(--gold);color:var(--ink);border:1.5px solid #8a6e1a;padding:7px 14px;font-family:'Noto Serif SC',serif;font-size:12.5px;cursor:pointer;box-shadow:3px 3px 0 #8a6e1a;transition:all .15s;white-space:nowrap;}
+    .btn-merge:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 #8a6e1a;}
+    .btn-merge:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+
   </style>
 </head>
 <body>
@@ -285,7 +298,15 @@
     </div>
     <button class="btn-primary" id="btnAdd">＋ 新增</button>
     <button class="btn-primary" id="btnImport" style="background:var(--blue);border-color:#0f2540;box-shadow:3px 3px 0 #0f2540">⬇ 从书名导入</button>
+    <button class="btn-merge" id="btnStartMerge">⇌ 合并条目</button>
     <button class="settings-btn" id="btnSettings">⚙</button>
+  </div>
+  <!-- merge selection bar -->
+  <div class="merge-bar" id="mergeBar">
+    <span class="merge-bar-label">合并模式</span>
+    <span id="mergeCount" style="font-size:12px;color:var(--ink-faded)">已选 0 条</span>
+    <button class="btn-merge" id="btnDoMerge" disabled style="padding:5px 12px;font-size:12px">生成合并 Prompt</button>
+    <button class="btn-cancel" id="btnCancelMerge" style="padding:5px 10px;font-size:10px">取消</button>
   </div>
   <div class="filter-row">
     <span class="filter-label">HOW</span>
@@ -1051,27 +1072,60 @@ document.getElementById('btnParseReply').addEventListener('click', () => {
   showImportStep(2);
 });
 
+// Simple string similarity: count shared characters / max length
+function strSimilarity(a, b) {
+  a = a.toLowerCase().replace(/\s/g,'');
+  b = b.toLowerCase().replace(/\s/g,'');
+  if (a === b) return 1;
+  if (!a || !b) return 0;
+  // Check if one contains the other
+  if (a.includes(b) || b.includes(a)) return 0.85;
+  // Count shared chars
+  const sa = new Set(a), sb = new Set(b);
+  let shared = 0;
+  sa.forEach(c => { if (sb.has(c)) shared++; });
+  return shared / Math.max(sa.size, sb.size);
+}
+
+function findSimilarEntry(title) {
+  let best = null, bestScore = 0;
+  entries.forEach(e => {
+    const score = strSimilarity(title, e.title);
+    if (score > bestScore) { bestScore = score; best = e; }
+  });
+  return bestScore >= 0.6 ? { entry: best, score: bestScore } : null;
+}
+
 function renderPreview(items) {
   const bookName = document.getElementById('importBookName').value.trim();
   document.getElementById('importNote').textContent =
     `从《${bookName}》解析到 ${items.length} 条，勾选要导入的条目：`;
 
-  document.getElementById('previewList').innerHTML = items.map((e,i) => `
+  document.getElementById('previewList').innerHTML = items.map((e,i) => {
+    const similar = findSimilarEntry(e.title);
+    const similarWarn = similar
+      ? `<div style="font-size:11px;color:var(--gold);margin-top:4px;font-family:'Special Elite',monospace;letter-spacing:.5px">
+           ⚠ 疑似与已有条目重复：「${esc(similar.entry.title)}」
+         </div>`
+      : '';
+    return `
     <div class="preview-item selected" id="preview-${i}">
       <input type="checkbox" class="preview-check" id="pcheck-${i}" checked onchange="togglePreview(${i})" />
       <div class="preview-info">
         <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;flex-wrap:wrap">
           <div class="preview-title">${esc(e.title)}</div>
           <select class="filter-select" style="font-size:11px;padding:2px 22px 2px 7px;box-shadow:none" onchange="parsedImports[${i}].cat=this.value">
-            <option value="trick"   ${e.cat==='trick'   ?'selected':''}>诡计</option>
-            <option value="concept" ${e.cat==='concept' ?'selected':''}>概念</option>
+            <option value="trick"     ${e.cat==='trick'    ?'selected':''}>诡计</option>
+            <option value="concept"   ${e.cat==='concept'  ?'selected':''}>概念</option>
             <option value="narrative" ${e.cat==='narrative'?'selected':''}>叙述手法</option>
           </select>
         </div>
         <div class="preview-meta">${[...(e.how||[]),...(e.why||[])].slice(0,4).join(' · ')}</div>
         <div class="preview-summary">${esc(e.summary)}</div>
+        ${similarWarn}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   updateSelectedCount();
 }
 
@@ -1493,18 +1547,26 @@ const _origBuildPrompt = buildPrompt;
 buildPrompt = function(bookName, author) {
   const authorLine = author ? '作者：'+author : '';
   const fence = '```';
+
+  // Build existing entries index for Claude to reference
   return '你是一位推理小说专家。请分析以下书目，严格按照以下规则输出：\n\n'+
     '【规则】\n'+
-    '1. 诡计/概念/叙述手法条目必须是可跨作品复用的通用手法，而非对单次情节的描述（例如"移动椅子"不应成为独立条目，而应归入"改变现场细节以误导勘查"这一通用手法）\n'+
-    '2. 可合并的内容绝对不要拆分成多条\n'+
-    '3. 分类必须唯一：诡计=具体作案手法，概念=理论框架/推理类型，叙述手法=作者叙事层面的技巧\n'+
-    '4. 作者特质和侦探特质只写在对应区块，不要写入条目\n\n'+
+    '1. 条目名称（title）：简洁，优先使用推理界约定俗成的术语，不加破折号解释，不堆砌修饰语。具体要求按类型区分：\n'+
+    '   - 概念（concept）：必须是已被命名、独立存在的理论或原则（如"奥卡姆剃刀""契科夫之枪""假说演绎法"），不得将书中情节或手法归纳总结后编造为新概念\n'+
+    '   - 诡计（trick）和叙述手法（narrative）：用简洁的描述性短语即可，无需是已有术语\n'+
+    '2. 诡计/概念/叙述手法条目必须是可跨作品复用的通用手法，而非对单次情节的描述\n'+
+    '3. 可合并的内容绝对不要拆分成多条\n'+
+    '4. 分类必须唯一：诡计=具体作案手法，概念=理论框架/推理类型，叙述手法=作者叙事层面的技巧\n'+
+    '5. 作者特质和侦探特质只写在对应区块，不要写入条目\n'+
+    '\n\n'+
     '书名：《'+bookName+'》\n'+authorLine+'\n\n'+
     '请输出以下三个JSON区块，直接输出不要任何说明：\n\n'+
     fence+'json entries\n'+
-    '[\n  {\n    "cat": "trick",\n    "title": "通用手法名称",\n    "how": ["实现手法"],\n    "why": ["目的"],\n    "summary": "核心逻辑",\n    "detail": "深入分析",\n    "example": "书中具体运用（概述）",\n    "keywords": ["关键词"]\n  }\n]\n'+fence+'\n\n'+
+    '[\n'+
+    '  {\n    "cat": "trick",\n    "title": "简洁术语名",\n    "how": ["实现手法"],\n    "why": ["目的"],\n    "summary": "核心逻辑",\n    "detail": "深入分析",\n    "example": "书中具体运用（概述）",\n    "keywords": ["关键词"]\n  },\n'+
+    ']\n'+fence+'\n\n'+
     fence+'json author\n'+
-    '{\n  "name": "'+( author||bookName)+'",\n  "style": "从本书中观察到的作者写作特质、惯用手法、叙事倾向（不超过200字，只写能从本书印证的内容）"\n}\n'+fence+'\n\n'+
+    '{\n  "name": "'+(author||bookName)+'",\n  "style": "从本书中观察到的作者写作特质、惯用手法、叙事倾向（不超过200字，只写能从本书印证的内容）"\n}\n'+fence+'\n\n'+
     fence+'json detective\n'+
     '[\n  {\n    "name": "侦探姓名",\n    "authorName": "'+(author||'')+'",\n    "trait": "在本书中展现的推理方式、性格特质、标志性手法"\n  }\n]\n'+fence+'\n\n'+
     '如果本书没有固定侦探，detective区块输出空数组[]。';
@@ -1653,6 +1715,190 @@ document.querySelectorAll('.main-tab').forEach(tab => {
     if (tab.dataset.panel==='detectives') renderDetectives();
   });
 });
+// ══════════════════════════════════════════════
+//  MERGE MODE
+// ══════════════════════════════════════════════
+let mergeMode = false;
+let mergeSelected = new Set(); // entry ids
+let mergedEntry = null; // parsed result
+
+function enterMergeMode() {
+  mergeMode = true;
+  mergeSelected.clear();
+  document.getElementById('mergeBar').classList.add('active');
+  document.getElementById('btnStartMerge').style.display = 'none';
+  renderTricks();
+}
+
+function exitMergeMode() {
+  mergeMode = false;
+  mergeSelected.clear();
+  document.getElementById('mergeBar').classList.remove('active');
+  document.getElementById('btnStartMerge').style.display = '';
+  renderTricks();
+}
+
+function toggleMergeSelect(id) {
+  if (mergeSelected.has(id)) mergeSelected.delete(id);
+  else mergeSelected.add(id);
+  // Update card visual
+  document.querySelectorAll('.card.merge-selectable').forEach(card => {
+    const cid = parseInt(card.dataset.id);
+    card.classList.toggle('merge-selected', mergeSelected.has(cid));
+  });
+  const n = mergeSelected.size;
+  document.getElementById('mergeCount').textContent = '已选 ' + n + ' 条';
+  document.getElementById('btnDoMerge').disabled = n < 2;
+}
+
+// Patch renderTricks to add merge-selectable class when in merge mode
+const _origRenderTricks = renderTricks;
+renderTricks = function() {
+  _origRenderTricks();
+  if (!mergeMode) return;
+  document.querySelectorAll('.card').forEach(card => {
+    const id = parseInt(card.dataset.id);
+    card.classList.add('merge-selectable');
+    if (mergeSelected.has(id)) card.classList.add('merge-selected');
+    // Override click to toggle selection instead of opening detail
+    card.onclick = (e) => {
+      if (e.target.closest('.card-btn')) return;
+      toggleMergeSelect(id);
+    };
+  });
+};
+
+function buildMergePrompt() {
+  const selected = entries.filter(e => mergeSelected.has(e.id));
+  const fence = '```';
+  const entriesText = selected.map((e,i) =>
+    '【条目' + (i+1) + '】' + e.title + '（' + ({'trick':'诡计','concept':'概念','narrative':'叙述手法'}[e.cat]||e.cat) + '）\n' +
+    '简述：' + e.summary + '\n' +
+    (e.detail ? '详细：' + e.detail + '\n' : '') +
+    (e.how&&e.how.length ? '手法：' + e.how.join('、') + '\n' : '') +
+    (e.why&&e.why.length ? '目的：' + e.why.join('、') + '\n' : '') +
+    (e.keywords&&e.keywords.length ? '关键词：' + e.keywords.join('、') + '\n' : '') +
+    ((e.sources||[]).map(s => s.work ? '来源：《'+s.work+'》' + (s.example?'——'+s.example:'') : '').filter(Boolean).join('\n'))
+  ).join('\n\n');
+
+  return '以下是推理逻辑库中需要合并的' + selected.length + '个条目，请将它们合并为一个更完整、准确的单一条目。\n\n' +
+    entriesText + '\n\n' +
+    '合并要求：\n' +
+    '1. 条目名称简洁，优先使用推理界约定俗成的术语，不造新词\n' +
+    '2. summary 和 detail 综合所有条目内容，去除重复，保留最有价值的分析\n' +
+    '3. 来源示例全部保留\n' +
+    '4. 请以 JSON 格式输出（直接输出不要任何说明）：\n\n' +
+    fence + 'json\n' +
+    '{\n' +
+    '  "cat": "trick",\n' +
+    '  "title": "合并后的条目名称",\n' +
+    '  "how": ["手法标签"],\n' +
+    '  "why": ["目的标签"],\n' +
+    '  "summary": "合并后的简述",\n' +
+    '  "detail": "合并后的详细分析",\n' +
+    '  "keywords": ["关键词"],\n' +
+    '  "sources": [{"work":"书名","author":"作者","example":"示例"}]\n' +
+    '}\n' +
+    fence;
+}
+
+document.getElementById('btnStartMerge').addEventListener('click', enterMergeMode);
+document.getElementById('btnCancelMerge').addEventListener('click', exitMergeMode);
+
+document.getElementById('btnDoMerge').addEventListener('click', () => {
+  const prompt = buildMergePrompt();
+  document.getElementById('mergePromptBox').textContent = prompt;
+  document.getElementById('mergePasteArea').value = '';
+  document.getElementById('mergeParseErr').style.display = 'none';
+  document.getElementById('mergePreview').style.display = 'none';
+  document.getElementById('mergeSaveMsg').textContent = '';
+  openModal('mergeModal');
+});
+
+document.getElementById('btnCopyMergePrompt').addEventListener('click', () => {
+  navigator.clipboard.writeText(document.getElementById('mergePromptBox').textContent).then(() => {
+    const el = document.getElementById('mergeCopyConfirm');
+    el.textContent = '✓ 已复制'; el.style.opacity = '1';
+    setTimeout(() => { el.style.opacity = '0'; }, 2000);
+  });
+});
+
+document.getElementById('btnApplyMerge').addEventListener('click', () => {
+  const raw = document.getElementById('mergePasteArea').value;
+  const errEl = document.getElementById('mergeParseErr');
+  let result = parseJson(raw);
+  if (Array.isArray(result)) result = result[0] || null;
+  if (!result || !result.title) {
+    errEl.textContent = '✕ 未找到可解析的 JSON'; errEl.style.display = 'block'; return;
+  }
+  errEl.style.display = 'none';
+  mergedEntry = result;
+
+  // Show preview
+  const cat = result.cat || 'trick';
+  const catLabel = {'trick':'诡计','concept':'概念','narrative':'叙述手法'}[cat] || cat;
+  const srcHtml = (result.sources||[]).filter(s=>s.work).map(s =>
+    '<div style="font-size:12px;color:var(--ink-faded);margin-top:4px">《'+esc(s.work)+'》' + (s.example?' — '+esc(s.example.slice(0,60))+(s.example.length>60?'…':''):'') + '</div>'
+  ).join('');
+  document.getElementById('mergePreviewContent').innerHTML =
+    '<span class="card-cat cat-'+cat+'" style="margin-bottom:8px;display:inline-block">'+catLabel+'</span>' +
+    '<div style="font-size:17px;font-weight:700;margin-bottom:8px">'+esc(result.title)+'</div>' +
+    (result.summary ? '<div style="font-size:13px;color:var(--ink-faded);margin-bottom:8px">'+esc(result.summary)+'</div>' : '') +
+    srcHtml;
+  document.getElementById('mergePreview').style.display = 'block';
+});
+
+document.getElementById('btnConfirmMerge').addEventListener('click', async () => {
+  if (!mergedEntry) return;
+  const btn = document.getElementById('btnConfirmMerge');
+  btn.disabled = true; btn.textContent = '保存中…';
+
+  // Build the merged entry, preserving sources from original entries if not in result
+  const origSources = entries.filter(e => mergeSelected.has(e.id)).flatMap(e => e.sources||[]);
+  const mergedSources = (mergedEntry.sources||[]).length ? mergedEntry.sources : origSources;
+
+  const newEntry = {
+    id: nextId++,
+    cat:      ['trick','concept','narrative'].includes(mergedEntry.cat) ? mergedEntry.cat : 'trick',
+    title:    (mergedEntry.title||'').trim(),
+    how:      Array.isArray(mergedEntry.how) ? mergedEntry.how : [],
+    why:      Array.isArray(mergedEntry.why) ? mergedEntry.why : [],
+    howShort: [], whyShort: [],
+    summary:  (mergedEntry.summary||'').trim(),
+    detail:   (mergedEntry.detail||'').trim(),
+    sources:  mergedSources,
+    keywords: Array.isArray(mergedEntry.keywords) ? mergedEntry.keywords : [],
+    notes:    '',
+    date:     today(),
+  };
+
+  // Remove originals, add merged
+  entries = entries.filter(e => !mergeSelected.has(e.id));
+  entries.unshift(newEntry);
+
+  const ok = await ghSave();
+  btn.disabled = false; btn.textContent = '确认合并并删除原条目';
+  const msg = document.getElementById('mergeSaveMsg');
+  msg.style.color = ok ? '#6aaa5a' : '#c44';
+  msg.textContent = ok ? '✓ 已保存' : '⚠ 本地缓存';
+
+  if (ok) {
+    setTimeout(() => {
+      closeModal('mergeModal');
+      exitMergeMode();
+    }, 800);
+  }
+  renderTricks();
+});
+
+document.getElementById('btnMergeBack').addEventListener('click', () => {
+  document.getElementById('mergePreview').style.display = 'none';
+  mergedEntry = null;
+});
+
+document.getElementById('mergeModalClose').addEventListener('click', () => closeModal('mergeModal'));
+document.getElementById('btnMergeCancel2').addEventListener('click', () => closeModal('mergeModal'));
+document.getElementById('mergeModal').addEventListener('click', e => { if (e.target.id==='mergeModal') closeModal('mergeModal'); });
 
 </script>
 
@@ -1733,6 +1979,41 @@ document.querySelectorAll('.main-tab').forEach(tab => {
         <button class="btn-submit" id="btnSubmitDetective">归档 · ARCHIVE</button>
         <button class="btn-cancel" id="btnCancelDetective">取消</button>
         <span class="save-msg" id="detectiveSaveMsg"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ MERGE MODAL ══ -->
+<div class="modal-overlay" id="mergeModal">
+  <div class="modal">
+    <div class="modal-header"><h2>MERGE · 合并条目</h2><button class="modal-close" id="mergeModalClose">✕</button></div>
+    <div class="modal-body">
+      <p class="f-label" style="margin-bottom:6px">把下面这段 prompt 复制，粘贴到 Claude 新对话里：</p>
+      <div class="prompt-box" id="mergePromptBox" style="max-height:200px;font-size:11px"></div>
+      <div style="display:flex;gap:8px;align-items:center;margin:8px 0 18px">
+        <button class="btn-copy" id="btnCopyMergePrompt">复制 Prompt</button>
+        <span id="mergeCopyConfirm" style="font-family:'Special Elite',monospace;font-size:10px;color:#6aaa5a;opacity:0;transition:opacity .3s"></span>
+      </div>
+      <hr class="f-hr" />
+      <p class="f-label" style="margin-bottom:6px">把 Claude 的回复粘贴到这里：</p>
+      <textarea class="paste-area" id="mergePasteArea" style="min-height:140px" placeholder="粘贴 Claude 的完整回复…"></textarea>
+      <div class="parse-err" id="mergeParseErr" style="display:none;margin-top:6px"></div>
+      <div class="f-actions" style="margin-top:10px">
+        <button class="btn-submit" id="btnApplyMerge">预览合并结果</button>
+        <button class="btn-cancel" id="btnMergeCancel2">取消</button>
+      </div>
+      <!-- preview of merged entry -->
+      <div id="mergePreview" style="display:none;margin-top:16px">
+        <hr class="f-hr" />
+        <p class="f-label" style="margin-bottom:8px">合并后的条目：</p>
+        <div id="mergePreviewContent" style="background:var(--paper-dark);border:1.5px solid var(--paper-darker);padding:14px"></div>
+        <div class="f-actions" style="margin-top:12px">
+          <button class="btn-submit" id="btnConfirmMerge">确认合并并删除原条目</button>
+          <button class="btn-cancel" id="btnMergeBack">← 返回修改</button>
+          <span class="save-msg" id="mergeSaveMsg"></span>
+        </div>
       </div>
     </div>
   </div>

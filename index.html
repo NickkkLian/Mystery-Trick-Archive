@@ -362,6 +362,11 @@
           <p class="f-hint">回车添加</p>
         </div>
       </div>
+      <hr class="f-hr" />
+      <div class="f-group">
+        <label class="f-label">备注</label>
+        <textarea class="f-textarea" id="fNotes" placeholder="个人备注、疑问、待补充内容…" style="min-height:60px"></textarea>
+      </div>
       <div class="f-actions">
         <button class="btn-submit" id="btnSubmit">归档 · ARCHIVE</button>
         <button class="btn-cancel" id="btnCancel">取消</button>
@@ -667,6 +672,7 @@ function openDetail(id) {
     ${e.detail?`<div class="d-hr"></div><div class="d-label">详细分析</div><div class="d-text">${esc(e.detail)}</div>`:''}
     ${srcHtml?`<div class="d-hr"></div><div class="d-label">书中运用示例</div><div class="d-examples">${srcHtml}</div>`:''}
     ${(e.keywords||[]).length?`<div class="d-hr"></div><div class="d-label">关键词</div><div class="d-keywords">${e.keywords.map(k=>`<span class="d-keyword">${esc(k)}</span>`).join('')}</div>`:''}
+    ${e.notes?`<div class="d-hr"></div><div class="d-label">备注</div><div class="d-text" style="font-style:italic">${esc(e.notes)}</div>`:''}
     ${e.date?`<div class="d-hr"></div><div class="d-label">归档日期</div><div class="d-text" style="font-size:12px">${esc(e.date.replace(/-/g,'.'))}</div>`:''}
   `;
   openModal('detailModal');
@@ -737,7 +743,7 @@ function updateHowWhyVisibility() {
 function openAdd() {
   editingId = null;
   document.getElementById('formTitle').textContent = 'NEW ENTRY · 新增条目';
-  ['fTitle','fSummary','fDetail'].forEach(id=>document.getElementById(id).value='');
+  ['fTitle','fSummary','fDetail','fNotes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fCat').value = 'trick';
   formHowTags=[]; formWhyTags=[]; formKwTags=[]; formSources=[];
   makeTagInput('howTagWrap',formHowTags); makeTagInput('whyTagWrap',formWhyTags); makeTagInput('kwTagWrap',formKwTags);
@@ -757,6 +763,7 @@ function openEdit(id) {
   document.getElementById('fCat').value     = e.cat||'trick';
   document.getElementById('fSummary').value = e.summary;
   document.getElementById('fDetail').value  = e.detail||'';
+  document.getElementById('fNotes').value   = e.notes||'';
   formHowTags=[...(e.how||[])]; formWhyTags=[...(e.why||[])]; formKwTags=[...(e.keywords||[])];
   formSources = (e.sources||[]).map(s=>({work:s.work||'',author:s.author||'',example:s.example||''}));
   makeTagInput('howTagWrap',formHowTags); makeTagInput('whyTagWrap',formWhyTags); makeTagInput('kwTagWrap',formKwTags);
@@ -772,12 +779,14 @@ async function submitForm() {
   const title=document.getElementById('fTitle').value.trim(), summary=document.getElementById('fSummary').value.trim();
   if (!title||!summary) { alert('请填写名称和简述'); return; }
   const btn=document.getElementById('btnSubmit'); btn.textContent='保存中…'; btn.disabled=true;
+  const cat = document.getElementById('fCat').value;
   const entry = {
-    id: editingId||nextId++, cat: document.getElementById('fCat').value,
-    title, how:[...formHowTags], why:[...formWhyTags], summary,
+    id: editingId||nextId++, cat,
+    title, how: cat==='trick'?[...formHowTags]:[], why: cat==='trick'?[...formWhyTags]:[], summary,
     detail: document.getElementById('fDetail').value.trim(),
     sources: formSources.filter(s=>s.work||s.example).map(s=>({work:s.work,author:s.author,example:s.example})),
-    keywords: [...formKwTags],
+    keywords: cat==='trick'?[...formKwTags]:[],
+    notes: document.getElementById('fNotes').value.trim(),
     date: editingId?(entries.find(e=>e.id===editingId)||{}).date||today():today(),
   };
   if (editingId) { const i=entries.findIndex(e=>e.id===editingId); entries[i]=entry; }
@@ -1148,6 +1157,12 @@ document.getElementById('whyFilter').addEventListener('change', e=>{ filterWhy=e
       if (local?.entries) { entries=local.entries; nextId=Math.max(0,...entries.map(e=>e.id))+1; }
       setSyncStatus('err', cfg.token?'同步失败，显示本地缓存':'请在 ⚙ 中配置 GitHub');
     } catch {}
+  }
+  // Migrate: strip keywords from non-trick entries
+  const dirty = entries.some(e => e.cat !== 'trick' && (e.keywords||[]).length);
+  if (dirty) {
+    entries.forEach(e => { if (e.cat !== 'trick') e.keywords = []; });
+    ghSave();
   }
   renderTricks();
   if (!cfg.token) setTimeout(()=>openSettings(), 500);

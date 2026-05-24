@@ -959,15 +959,48 @@ function robustParseArray(raw) {
   if (!jsonStr) return null;
   try { return JSON.parse(jsonStr); } catch(e) {}
   try { return JSON.parse(sanitizeJson(jsonStr)); } catch(e) {}
+  // Last resort: try parsing as single object and wrap
+  const obj = extractFields(raw);
+  if (obj && obj.title) return [obj];
   return null;
 }
 
 function robustParseObject(raw) {
   const jsonStr = extractJsonStr(raw);
   if (!jsonStr) return null;
+  // Try 1: direct parse
   try { return JSON.parse(jsonStr); } catch(e) {}
+  // Try 2: sanitize real newlines inside strings
   try { return JSON.parse(sanitizeJson(jsonStr)); } catch(e) {}
-  return null;
+  // Try 3: field-by-field extraction as last resort
+  return extractFields(raw);
+}
+
+function extractFields(raw) {
+  // Pull individual fields out of malformed JSON using regex
+  function getStr(key) {
+    const m = raw.match(new RegExp('"' + key + '"\\s*:\\s*"((?:[^"\\\\]|\\\\[\\s\\S])*)"'));
+    if (m) return m[1].replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+    return null;
+  }
+  function getArr(key) {
+    const m = raw.match(new RegExp('"' + key + '"\\s*:\\s*\\[([^\\]]*)\\]'));
+    if (!m) return [];
+    return m[1].match(/"([^"]*)"/g)?.map(s => s.slice(1,-1)) || [];
+  }
+  const summary = getStr('summary');
+  const detail  = getStr('detail');
+  if (!summary && !detail) return null;
+  return {
+    summary: summary || '',
+    detail:  detail  || '',
+    how:      getArr('how'),
+    why:      getArr('why'),
+    keywords: getArr('keywords'),
+    cat:      getStr('cat') || 'trick',
+    title:    getStr('title') || '',
+    example:  getStr('example') || '',
+  };
 }
 
 // ══════════════════════════════════════════════

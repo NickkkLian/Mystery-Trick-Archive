@@ -308,20 +308,41 @@
           </select>
         </div>
       </div>
-      <hr class="f-hr" /><p class="f-section">检索标签</p>
-      <div class="f-row">
-        <div class="f-group">
-          <label class="f-label">手法 How</label>
-          <div class="tag-input-wrap" id="howTagWrap"></div>
-          <p class="f-hint">回车添加，例：时间差、身份混淆</p>
-        </div>
-        <div class="f-group">
-          <label class="f-label">目的 Why</label>
-          <div class="tag-input-wrap" id="whyTagWrap"></div>
-          <p class="f-hint">回车添加，例：构建不在场、制造密室</p>
+      <!-- How/Why: trick only -->
+      <div id="howWhySection">
+        <hr class="f-hr" /><p class="f-section">检索标签（仅诡计）</p>
+        <div class="f-row">
+          <div class="f-group">
+            <label class="f-label">手法 How</label>
+            <div class="tag-input-wrap" id="howTagWrap"></div>
+            <p class="f-hint">回车添加，例：时间差、身份混淆</p>
+          </div>
+          <div class="f-group">
+            <label class="f-label">目的 Why</label>
+            <div class="tag-input-wrap" id="whyTagWrap"></div>
+            <p class="f-hint">回车添加，例：构建不在场、制造密室</p>
+          </div>
         </div>
       </div>
-      <hr class="f-hr" /><p class="f-section">内容</p>
+      <hr class="f-hr" />
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+        <p class="f-section" style="margin-bottom:0">内容</p>
+        <button class="btn-copy" id="btnFillPrompt" style="font-size:9.5px;padding:5px 12px">✦ 用 Prompt 填充</button>
+      </div>
+      <!-- Inline prompt fill panel -->
+      <div id="fillPromptWrap" style="display:none;margin-bottom:14px">
+        <div class="prompt-box" id="fillPromptBox" style="max-height:160px;font-size:11px"></div>
+        <div style="display:flex;gap:8px;align-items:center;margin:8px 0">
+          <button class="btn-copy" id="btnCopyFillPrompt">复制 Prompt</button>
+          <span id="fillCopyConfirm" style="font-family:'Special Elite',monospace;font-size:10px;color:#6aaa5a;opacity:0;transition:opacity .3s"></span>
+        </div>
+        <label class="f-label" style="margin-bottom:5px">把 Claude 的回复粘贴到这里：</label>
+        <textarea class="paste-area" id="fillPasteArea" style="min-height:100px" placeholder="粘贴 Claude 的完整回复…"></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+          <button class="btn-submit" id="btnApplyFill" style="padding:7px 16px;font-size:10px">自动填入</button>
+          <span class="parse-err" id="fillErr" style="display:none"></span>
+        </div>
+      </div>
       <div class="f-group">
         <label class="f-label">简述 *</label>
         <textarea class="f-textarea" id="fSummary" placeholder="核心逻辑是什么？" style="min-height:68px"></textarea>
@@ -703,6 +724,11 @@ function removeSource(i) { formSources.splice(i,1); renderSourceList(); }
 // ══════════════════════════════════════════════
 //  FORM
 // ══════════════════════════════════════════════
+function updateHowWhyVisibility() {
+  const cat = document.getElementById('fCat').value;
+  document.getElementById('howWhySection').style.display = cat === 'trick' ? '' : 'none';
+}
+
 function openAdd() {
   editingId = null;
   document.getElementById('formTitle').textContent = 'NEW ENTRY · 新增条目';
@@ -712,6 +738,9 @@ function openAdd() {
   makeTagInput('howTagWrap',formHowTags); makeTagInput('whyTagWrap',formWhyTags); makeTagInput('kwTagWrap',formKwTags);
   renderSourceList();
   document.getElementById('saveMsg').textContent='';
+  document.getElementById('fillPromptWrap').style.display='none';
+  document.getElementById('fillErr').style.display='none';
+  updateHowWhyVisibility();
   openModal('formModal');
 }
 
@@ -728,6 +757,9 @@ function openEdit(id) {
   makeTagInput('howTagWrap',formHowTags); makeTagInput('whyTagWrap',formWhyTags); makeTagInput('kwTagWrap',formKwTags);
   renderSourceList();
   document.getElementById('saveMsg').textContent='';
+  document.getElementById('fillPromptWrap').style.display='none';
+  document.getElementById('fillErr').style.display='none';
+  updateHowWhyVisibility();
   openModal('formModal');
 }
 
@@ -790,7 +822,69 @@ cat 只能是 "trick"、"concept"、"narrative" 之一。
 每本书可能有多条，请尽量完整。注意剧透请在 example 字段中适度处理。`;
 }
 
-function openImport() {
+function buildFillPrompt(title, cat) {
+  const catLabel = CAT_LABEL[cat] || '诡计';
+  const isTrick = cat === 'trick';
+  return `你是一位推理小说专家。请分析以下推理${catLabel}，以 JSON 格式返回详细信息（直接输出 JSON，不要加任何说明文字）：
+
+条目名称：「${title}」
+类型：${catLabel}
+
+\`\`\`json
+{
+  "summary": "一两句话概括核心逻辑",
+  "detail": "深入分析：原理、变体、适用条件、局限性等",${isTrick ? `
+  "how": ["实现手法标签1", "实现手法标签2"],
+  "why": ["目的标签1", "目的标签2"],` : ''}
+  "keywords": ["关键词1", "关键词2", "关键词3"]
+}
+\`\`\``;
+}
+
+// Wire up fill-prompt button
+document.getElementById('fCat').addEventListener('change', updateHowWhyVisibility);
+
+document.getElementById('btnFillPrompt').addEventListener('click', () => {
+  const title = document.getElementById('fTitle').value.trim();
+  const cat   = document.getElementById('fCat').value;
+  if (!title) { alert('请先填写条目名称'); return; }
+  const wrap = document.getElementById('fillPromptWrap');
+  document.getElementById('fillPromptBox').textContent = buildFillPrompt(title, cat);
+  document.getElementById('fillPasteArea').value = '';
+  document.getElementById('fillErr').style.display = 'none';
+  wrap.style.display = wrap.style.display === 'none' ? '' : 'none';
+});
+
+document.getElementById('btnCopyFillPrompt').addEventListener('click', () => {
+  navigator.clipboard.writeText(document.getElementById('fillPromptBox').textContent).then(() => {
+    const el = document.getElementById('fillCopyConfirm');
+    el.textContent = '✓ 已复制'; el.style.opacity = '1';
+    setTimeout(() => { el.style.opacity = '0'; }, 2000);
+  });
+});
+
+document.getElementById('btnApplyFill').addEventListener('click', () => {
+  const raw = document.getElementById('fillPasteArea').value;
+  const errEl = document.getElementById('fillErr');
+
+  let jsonStr = null;
+  const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenceMatch) jsonStr = fenceMatch[1].trim();
+  if (!jsonStr) { const m = raw.match(/(\{[\s\S]*\})/); if (m) jsonStr = m[1]; }
+
+  if (!jsonStr) { errEl.textContent = '✕ 未找到 JSON'; errEl.style.display='inline'; return; }
+  let p;
+  try { p = JSON.parse(jsonStr); } catch(e) { errEl.textContent='✕ 解析失败: '+e.message; errEl.style.display='inline'; return; }
+  errEl.style.display='none';
+
+  if (p.summary)  document.getElementById('fSummary').value = p.summary;
+  if (p.detail)   document.getElementById('fDetail').value  = p.detail;
+  if (Array.isArray(p.how))      { formHowTags.length=0; (p.how||[]).forEach(v=>{if(!formHowTags.includes(v))formHowTags.push(v);}); makeTagInput('howTagWrap',formHowTags); }
+  if (Array.isArray(p.why))      { formWhyTags.length=0; (p.why||[]).forEach(v=>{if(!formWhyTags.includes(v))formWhyTags.push(v);}); makeTagInput('whyTagWrap',formWhyTags); }
+  if (Array.isArray(p.keywords)) { formKwTags.length=0;  (p.keywords||[]).forEach(v=>{if(!formKwTags.includes(v))formKwTags.push(v);}); makeTagInput('kwTagWrap',formKwTags); }
+
+  document.getElementById('fillPromptWrap').style.display = 'none';
+});
   document.getElementById('importBookName').value='';
   document.getElementById('importAuthor').value='';
   document.getElementById('pasteArea').value='';

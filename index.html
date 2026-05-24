@@ -560,14 +560,22 @@ async function ghLoad() {
   setSyncStatus('loading', '同步中…');
   try {
     const res = await fetch(ghUrl(), { headers: ghHeaders() });
-    if (res.status === 404) { fileSha = null; entries = []; nextId = 1; setSyncStatus('ok', '新文件'); return true; }
+    if (res.status === 404) {
+      fileSha = null; entries = []; authors = []; detectives = [];
+      nextId = nextAuthorId = nextDetectiveId = 1;
+      setSyncStatus('ok', '新文件'); return true;
+    }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     fileSha = json.sha;
     const text = decodeURIComponent(escape(atob(json.content.replace(/\n/g, ''))));
     const data = JSON.parse(text);
-    entries = data.entries || [];
-    nextId = Math.max(0, ...entries.map(e => e.id)) + 1;
+    entries    = data.entries    || [];
+    authors    = data.authors    || [];
+    detectives = data.detectives || [];
+    nextId          = Math.max(0, ...entries.map(e => e.id))       + 1;
+    nextAuthorId    = Math.max(0, ...authors.map(a => a.id))       + 1;
+    nextDetectiveId = Math.max(0, ...detectives.map(d => d.id))    + 1;
     setSyncStatus('ok', `已同步 · ${entries.length} 条`);
     return true;
   } catch(e) { setSyncStatus('err', '同步失败: ' + e.message); return false; }
@@ -575,12 +583,12 @@ async function ghLoad() {
 
 async function ghSave() {
   if (!cfg.token || !cfg.owner || !cfg.repo) {
-    localStorage.setItem('mtrick_local', JSON.stringify({ entries }));
+    localStorage.setItem('mtrick_local', JSON.stringify({ entries, authors, detectives }));
     setSyncStatus('err', '未配置 GitHub，已本地缓存'); return false;
   }
   setSyncStatus('loading', '保存中…');
   try {
-    const content = btoa(unescape(encodeURIComponent(JSON.stringify({ entries }, null, 2))));
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify({ entries, authors, detectives }, null, 2))));
     const body = { message: `update ${new Date().toISOString().slice(0,10)}`, content };
     if (fileSha) body.sha = fileSha;
     const res = await fetch(ghUrl(), { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
@@ -605,8 +613,8 @@ const CAT_CLASS = { trick:'cat-trick', concept:'cat-concept', narrative:'cat-nar
 // ══════════════════════════════════════════════
 function rebuildDropdowns() {
   const tricks = entries.filter(e => e.cat === 'trick');
-  const hows = [...new Set(tricks.flatMap(e => (e.howShort&&e.howShort.length?e.howShort:e.how)||[]))].sort();
-  const whys = [...new Set(tricks.flatMap(e => (e.whyShort&&e.whyShort.length?e.whyShort:e.why)||[]))].sort();
+  const hows = [...new Set(tricks.flatMap(e => e.howShort||[]))].sort();
+  const whys = [...new Set(tricks.flatMap(e => e.whyShort||[]))].sort();
   const hSel = document.getElementById('howFilter'), wSel = document.getElementById('whyFilter');
   const ch = hSel.value, cw = wSel.value;
   hSel.innerHTML = '<option value="">— 全部手法 —</option>' + hows.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('');
@@ -620,8 +628,8 @@ function rebuildDropdowns() {
 // ══════════════════════════════════════════════
 function matchEntry(e) {
   if (filterCat !== 'all' && e.cat !== filterCat) return false;
-  if (filterHow && !(e.howShort&&e.howShort.length ? e.howShort : e.how||[]).includes(filterHow)) return false;
-  if (filterWhy && !(e.whyShort&&e.whyShort.length ? e.whyShort : e.why||[]).includes(filterWhy)) return false;
+  if (filterHow && !(e.howShort||[]).includes(filterHow)) return false;
+  if (filterWhy && !(e.whyShort||[]).includes(filterWhy)) return false;
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     const sources = (e.sources||[]).map(s=>`${s.work||''} ${s.author||''} ${s.example||''}`).join(' ');
@@ -1308,50 +1316,6 @@ let authors = [];     // [{id, name, style, notes, detectiveIds:[]}]
 let detectives = [];  // [{id, name, authorName, trait, notes}]
 let nextAuthorId = 1, nextDetectiveId = 1;
 let editingAuthorId = null, editingDetectiveId = null;
-
-// ── extend ghLoad / ghSave to include authors & detectives ──
-const _origGhLoad = ghLoad;
-ghLoad = async function() {
-  if (!cfg.token || !cfg.owner || !cfg.repo) return false;
-  setSyncStatus('loading', '同步中…');
-  try {
-    const res = await fetch(ghUrl(), { headers: ghHeaders() });
-    if (res.status === 404) { fileSha=null; entries=[]; authors=[]; detectives=[]; nextId=nextAuthorId=nextDetectiveId=1; setSyncStatus('ok','新文件'); return true; }
-    if (!res.ok) throw new Error('HTTP '+res.status);
-    const json = await res.json();
-    fileSha = json.sha;
-    const text = decodeURIComponent(escape(atob(json.content.replace(/\n/g,''))));
-    const data = JSON.parse(text);
-    entries    = data.entries    || [];
-    authors    = data.authors    || [];
-    detectives = data.detectives || [];
-    nextId          = Math.max(0,...entries.map(e=>e.id))+1;
-    nextAuthorId    = Math.max(0,...authors.map(a=>a.id))+1;
-    nextDetectiveId = Math.max(0,...detectives.map(d=>d.id))+1;
-    setSyncStatus('ok','已同步 · '+entries.length+' 条');
-    return true;
-  } catch(e) { setSyncStatus('err','同步失败: '+e.message); return false; }
-};
-
-const _origGhSave = ghSave;
-ghSave = async function() {
-  if (!cfg.token || !cfg.owner || !cfg.repo) {
-    localStorage.setItem('mtrick_local', JSON.stringify({entries,authors,detectives}));
-    setSyncStatus('err','未配置 GitHub，已本地缓存'); return false;
-  }
-  setSyncStatus('loading','保存中…');
-  try {
-    const content = btoa(unescape(encodeURIComponent(JSON.stringify({entries,authors,detectives},null,2))));
-    const body = {message:'update '+new Date().toISOString().slice(0,10), content};
-    if (fileSha) body.sha = fileSha;
-    const res = await fetch(ghUrl(),{method:'PUT',headers:ghHeaders(),body:JSON.stringify(body)});
-    if (!res.ok) { const j=await res.json().catch(()=>{}); throw new Error((j||{}).message||'HTTP '+res.status); }
-    const json = await res.json();
-    fileSha = json.content.sha;
-    setSyncStatus('ok','已保存 · '+entries.length+' 条');
-    return true;
-  } catch(e) { setSyncStatus('err','保存失败: '+e.message); return false; }
-};
 
 // ══════════════════════════════════════════════
 //  RENDER AUTHORS

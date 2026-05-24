@@ -1353,7 +1353,7 @@ document.getElementById('btnDoImport').addEventListener('click', async () => {
           ? existing.style + '\n\n【' + bk + '】' + a.style
           : a.style;
       }
-      else authors.push({id:nextAuthorId++, name, style:a.style||'', notes:''});
+      else authors.push({id:nextAuthorId++, name, style: a.style ? '【'+bk+'】'+a.style : '', notes:''});
     }
   }
 
@@ -1370,7 +1370,7 @@ document.getElementById('btnDoImport').addEventListener('click', async () => {
         ? existing.trait + '\n\n【' + bk + '】' + d.trait
         : d.trait;
     }
-    else detectives.push({id:nextDetectiveId++, name, authorName:aName, trait:d.trait||'', notes:''});
+    else detectives.push({id:nextDetectiveId++, name, authorName:aName, trait: d.trait ? '【'+bk+'】'+d.trait : '', notes:''});
   });
 
   // Clean up

@@ -121,6 +121,7 @@
     .book-count-badge{font-family:'Special Elite',monospace;font-size:9px;letter-spacing:1px;padding:2px 7px;border:1px solid;}
     .bc-trick{color:var(--red);border-color:var(--red);background:var(--red-faint);}
     .bc-concept{color:var(--blue);border-color:var(--blue);background:var(--blue-faint);}
+    .bc-detective-move,.bc-detective_move{color:var(--green);border-color:var(--green);background:var(--green-faint);}
     .bc-narrative{color:var(--gold);border-color:var(--gold);background:var(--gold-faint);}
     .book-entries{display:none;border-top:1px solid var(--paper-darker);padding:10px 16px 14px;}
     .book-item.open .book-entries{display:block;}
@@ -282,7 +283,6 @@
 
 
     .cat-detective-move{color:#2a5c3a;border-color:#2a5c3a;background:#2a5c3a18;}
-    .cat-case-logic{color:#5c2a2a;border-color:#5c2a2a;background:#5c2a2a18;}
   </style>
 </head>
 <body>
@@ -317,7 +317,6 @@
       <button class="cat-tab" data-cat="concept">概念</button>
       <button class="cat-tab" data-cat="narrative">叙述手法</button>
     <button class="cat-tab" data-cat="detective-move">侦探做法</button>
-    <button class="cat-tab" data-cat="case-logic">推理逻辑</button>
     </div>
     <button class="btn-primary" id="btnAdd">＋ 新增</button>
     <button class="btn-primary" id="btnImport" style="background:var(--blue);border-color:#0f2540;box-shadow:3px 3px 0 #0f2540">⬇ 从书名导入</button>
@@ -382,7 +381,6 @@
             <option value="concept">概念</option>
             <option value="narrative">叙述手法</option>
             <option value="detective-move">侦探做法</option>
-            <option value="case-logic">推理逻辑</option>
           </select>
         </div>
       </div>
@@ -449,13 +447,7 @@
           <datalist id="fDetectiveDatalist"></datalist>
         </div>
       </div>
-      <div id="fStepsSection" style="display:none">
-        <div class="f-group">
-          <label class="f-label">推理步骤（每行一步，最后一行为结论）</label>
-          <textarea class="f-textarea" id="fSteps" placeholder="发现关键证据&#10;排除不在场嫌疑人&#10;→ 凶手为X" style="min-height:120px"></textarea>
-          <p class="f-hint">最后一行或以「→」开头的行显示为结论节点</p>
-        </div>
-      </div>
+
       <div class="f-group">
         <label class="f-label">备注</label>
         <textarea class="f-textarea" id="fNotes" placeholder="个人备注、疑问、待补充内容…" style="min-height:60px"></textarea>
@@ -672,6 +664,39 @@
 
 
 
+<!-- ══ CASE LOGIC FORM (used from book library) ══ -->
+<div class="modal-overlay" id="clModal">
+  <div class="modal">
+    <div class="modal-header"><h2 id="clModalTitle">NEW · 推理逻辑</h2><button class="modal-close" id="clModalClose">✕</button></div>
+    <div class="modal-body">
+      <div class="f-row">
+        <div class="f-group">
+          <label class="f-label">出处书名 *</label>
+          <input class="f-input" id="clWork" type="text" placeholder="小说名…" />
+        </div>
+        <div class="f-group">
+          <label class="f-label">案件名称</label>
+          <input class="f-input" id="clCase" type="text" placeholder="第几案、案件名…" />
+        </div>
+      </div>
+      <div class="f-group">
+        <label class="f-label">推理步骤 *（每行一步，最后一行为结论）</label>
+        <textarea class="f-textarea" id="clSteps" placeholder="发现凶器上有指纹&#10;排除不在场的嫌疑人&#10;发现关键证人证词矛盾&#10;→ 得出凶手为X" style="min-height:140px"></textarea>
+        <p class="f-hint">最后一行或以「→」开头的行将高亮显示为结论。</p>
+      </div>
+      <div class="f-group">
+        <label class="f-label">备注</label>
+        <textarea class="f-textarea" id="clNotes" placeholder="个人备注、疑问…" style="min-height:55px"></textarea>
+      </div>
+      <div class="f-actions">
+        <button class="btn-submit" id="btnSubmitCL">归档 · ARCHIVE</button>
+        <button class="btn-cancel" id="btnCancelCL">取消</button>
+        <span class="save-msg" id="clSaveMsg"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════════════
 //  CONFIG
@@ -759,8 +784,8 @@ async function ghSave() {
 // ══════════════════════════════════════════════
 function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function today() { return new Date().toISOString().slice(0,10); }
-const CAT_LABEL = { trick:'诡计', concept:'概念', narrative:'叙述手法', 'detective-move':'侦探做法', 'case-logic':'推理逻辑' };
-const CAT_CLASS = { trick:'cat-trick', concept:'cat-concept', narrative:'cat-narrative', 'detective-move':'cat-detective-move', 'case-logic':'cat-case-logic' };
+const CAT_LABEL = { trick:'诡计', concept:'概念', narrative:'叙述手法', 'detective-move':'侦探做法' };
+const CAT_CLASS = { trick:'cat-trick', concept:'cat-concept', narrative:'cat-narrative', 'detective-move':'cat-detective-move' };
 
 // ══════════════════════════════════════════════
 //  DROPDOWNS
@@ -827,7 +852,6 @@ function renderTricks() {
 //  RENDER BOOKS
 // ══════════════════════════════════════════════
 function renderBooks() {
-  // Aggregate: book key = "work|||author"
   const bookMap = new Map();
   entries.forEach(e => {
     (e.sources||[]).forEach(s => {
@@ -846,10 +870,10 @@ function renderBooks() {
   empty.style.display = 'none';
 
   list.innerHTML = books.map((b, bi) => {
-    const counts = { trick: 0, concept: 0, narrative: 0 };
-    b.entries.forEach(e => { if (counts[e.cat] !== undefined) counts[e.cat]++; });
+    const counts = { trick: 0, concept: 0, narrative: 0, 'detective-move': 0 };
+    b.entries.forEach(e => { if (e.cat in counts) counts[e.cat]++; });
     const badges = Object.entries(counts).filter(([,n])=>n>0).map(([cat,n])=>
-      `<span class="book-count-badge bc-${cat}">${CAT_LABEL[cat]} ${n}</span>`).join('');
+      `<span class="book-count-badge bc-${cat.replace('-','_')}">${CAT_LABEL[cat]} ${n}</span>`).join('');
 
     const rows = b.entries.map(e => `
       <div class="book-entry-row">
@@ -859,6 +883,30 @@ function renderBooks() {
           <div class="be-summary">${esc(e.summary)}</div>
         </div>
       </div>`).join('');
+
+    // Case logics for this book
+    const bkLogics = caseLogics.filter(c => c.work === b.work);
+    const logicRows = bkLogics.map(c => `
+      <div style="margin-top:10px;border-top:1px dashed var(--paper-darker);padding-top:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <span style="font-family:'Special Elite',monospace;font-size:9px;letter-spacing:2px;color:var(--ink-lighter)">${esc(c.case_||'推理逻辑')}</span>
+          <div style="display:flex;gap:4px">
+            <button class="card-btn" onclick="openEditCL(${c.id})">✎</button>
+            <button class="card-btn" onclick="delCL(${c.id});renderBooks()">✕</button>
+          </div>
+        </div>
+        ${renderFlowChart(c.steps)}
+        ${c.notes?`<div style="font-size:12px;color:var(--ink-lighter);margin-top:6px;font-style:italic">${esc(c.notes)}</div>`:''}
+      </div>`).join('');
+
+    const logicSection = `
+      <div style="margin-top:12px;border-top:1px solid var(--paper-darker);padding-top:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span style="font-family:'Special Elite',monospace;font-size:9px;letter-spacing:2px;color:var(--ink-lighter)">推理逻辑</span>
+          <button class="card-btn" style="width:auto;padding:2px 8px;font-size:11px" onclick="openAddCLForBook('${esc(b.work)}','${esc(b.author||'')}')">＋</button>
+        </div>
+        ${logicRows || '<div style="font-size:12px;color:var(--ink-lighter);font-style:italic">暂无</div>'}
+      </div>`;
 
     return `
     <div class="book-item" id="bookitem-${bi}">
@@ -870,9 +918,14 @@ function renderBooks() {
         </div>
         <div class="book-counts">${badges}</div>
       </div>
-      <div class="book-entries">${rows}</div>
+      <div class="book-entries">${rows}${logicSection}</div>
     </div>`;
   }).join('');
+}
+
+function openAddCLForBook(work, author) {
+  openAddCL();
+  document.getElementById('clWork').value = work;
 }
 
 function toggleBook(bi) {
@@ -911,7 +964,6 @@ function openDetail(id) {
     <div class="d-hr"></div>
     <div class="d-label">简述</div><div class="d-text">${esc(e.summary)}</div>
     ${e.detail?`<div class="d-hr"></div><div class="d-label">详细分析</div><div class="d-text">${esc(e.detail)}</div>`:''}
-    ${e.cat==='case-logic'&&e.steps?`<div class="d-hr"></div><div class="d-label">推理逻辑流程</div>${renderFlowChart(e.steps)}`:''}
     ${srcHtml?`<div class="d-hr"></div><div class="d-label">书中运用示例</div><div class="d-examples">${srcHtml}</div>`:''}
     ${e.cat==='trick'&&(e.keywords||[]).length?`<div class="d-hr"></div><div class="d-label">关键词</div><div class="d-keywords">${e.keywords.map(k=>`<span class="d-keyword">${esc(k)}</span>`).join('')}</div>`:''}
     ${e.notes?`<div class="d-hr"></div><div class="d-label">备注</div><div class="d-text" style="font-style:italic">${esc(e.notes)}</div>`:''}
@@ -979,11 +1031,9 @@ function updateHowWhyVisibility() {
   const cat = document.getElementById('fCat').value;
   const isTrick = cat === 'trick';
   const isDM    = cat === 'detective-move';
-  const isCL    = cat === 'case-logic';
   document.getElementById('howWhySection').style.display     = isTrick ? '' : 'none';
   document.getElementById('kwSection').style.display          = isTrick ? '' : 'none';
   document.getElementById('fDetectiveSection').style.display  = isDM ? '' : 'none';
-  document.getElementById('fStepsSection').style.display      = isCL ? '' : 'none';
   // populate detective datalist
   if (isDM) {
     document.getElementById('fDetectiveDatalist').innerHTML =
@@ -994,7 +1044,7 @@ function updateHowWhyVisibility() {
 function openAdd() {
   editingId = null;
   document.getElementById('formTitle').textContent = 'NEW ENTRY · 新增条目';
-  ['fTitle','fSummary','fDetail','fNotes','fDetectiveName','fSteps'].forEach(id=>document.getElementById(id).value='');
+  ['fTitle','fSummary','fDetail','fNotes','fDetectiveName'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fCat').value = 'trick';
   formHowTags=[]; formWhyTags=[]; formKwTags=[]; formSources=[];
   formHowShortTags=[]; formWhyShortTags=[];
@@ -1018,7 +1068,6 @@ function openEdit(id) {
   document.getElementById('fDetail').value  = e.detail||'';
   document.getElementById('fNotes').value   = e.notes||'';
   document.getElementById('fDetectiveName').value = e.detectiveName||'';
-  document.getElementById('fSteps').value   = e.steps||'';
   formHowTags=[...(e.how||[])]; formWhyTags=[...(e.why||[])]; formKwTags=[...(e.keywords||[])];
   formHowShortTags=[...(e.howShort||[])]; formWhyShortTags=[...(e.whyShort||[])];
   formSources = (e.sources||[]).map(s=>({work:s.work||'',author:s.author||'',example:s.example||''}));
@@ -1046,7 +1095,6 @@ async function submitForm() {
     keywords: cat==='trick'?[...formKwTags]:[],
     notes: document.getElementById('fNotes').value.trim(),
     detectiveName: cat==='detective-move' ? document.getElementById('fDetectiveName').value.trim() : '',
-    steps: cat==='case-logic' ? document.getElementById('fSteps').value.trim() : '',
     date: editingId?(entries.find(e=>e.id===editingId)||{}).date||today():today(),
   };
   if (editingId) { const i=entries.findIndex(e=>e.id===editingId); entries[i]=entry; }
@@ -1298,7 +1346,6 @@ function renderPreview(items) {
             <option value="concept"   ${e.cat==='concept'  ?'selected':''}>概念</option>
             <option value="narrative" ${e.cat==='narrative'?'selected':''}>叙述手法</option>
             <option value="detective-move" ${e.cat==='detective-move'?'selected':''}>侦探做法</option>
-            <option value="case-logic" ${e.cat==='case-logic'?'selected':''}>推理逻辑</option>
           </select>
         </div>
         <div class="preview-meta">${[...(e.how||[]),...(e.why||[])].slice(0,4).join(' · ')}</div>
@@ -1441,7 +1488,7 @@ document.querySelectorAll('.main-tab').forEach(tab => {
     if (tab.dataset.panel==='authors')          renderAuthors();
     if (tab.dataset.panel==='detectives')       renderDetectives();
     if (tab.dataset.panel==='detective-moves')  renderDetectiveMoves();
-    if (tab.dataset.panel==='case-logic')       renderCaseLogic();
+    renderBooks();
   });
 });
 
@@ -1717,10 +1764,9 @@ trick（诡计）：凶手实施犯罪的手法。必须可跨作品复用，不
 concept（概念）：逻辑学、哲学或推理理论中已有命名的原则，例如"奥卡姆剃刀""假说演绎法""契科夫之枪""演绎法"。不得编造新概念，concept 条目必须是现实中真实存在的命名术语。
 narrative（叙述手法）：作者控制叙事信息的技巧。必须使用推理界已有术语，如"不可靠叙述者""叙述性诡计""限制视角"。不得自创词汇。
 detective-move（侦探做法）：侦探为达到特定目的而采取的非常规行动，如"侦探诱供""侦探以自身为诱饵""侦探亲手处决凶手"。常规操作（公开揭秘、访问证人）不值得记录。
-case-logic（推理逻辑）：某案的核心推理链条，抓住关键逻辑跳跃，而非情节流水账。
 
 【判断方法】
-凶手做的 → trick / 侦探做的 → detective-move / 作者做的 → narrative / 已命名理论 → concept / 某案推理过程 → case-logic
+凶手做的 → trick / 侦探做的 → detective-move / 作者做的 → narrative / 已命名理论 → concept
 
 【硬性规则】
 1. 一个条目只表达一个独立概念，不合并两件不同的事
@@ -1733,7 +1779,7 @@ case-logic（推理逻辑）：某案的核心推理链条，抓住关键逻辑�
 ${fence}json entries
 [
   {
-    "cat": "trick/concept/narrative/detective-move/case-logic",
+    "cat": "trick/concept/narrative/detective-move",
     "title": "简洁名称，不超过10字",
     "how": ["实现手法（仅 trick，其余 []）"],
     "howShort": ["手法缩略词（仅 trick，其余 []）"],
@@ -1744,7 +1790,6 @@ ${fence}json entries
     "example": "书中具体运用，可含人名案件",
     "keywords": ["关键词（仅 trick，其余 []）"],
     "detectiveName": "侦探中文名（仅 detective-move，其余 ''）",
-    "steps": "推理步骤每行一步（仅 case-logic，其余 ''）"
   }
 ]
 ${fence}
@@ -1816,7 +1861,7 @@ document.getElementById('btnParseReply').addEventListener('click', function() {
   window._pendingAuthorName = authorName || (parsed.author && parsed.author.name) || '';
 
   parsedImports = entriesArr.map(p => ({
-    cat:      ['trick','concept','narrative','detective-move','case-logic'].includes(p.cat) ? p.cat : 'trick',
+    cat:      ['trick','concept','narrative','detective-move'].includes(p.cat) ? p.cat : 'trick',
     title:    (p.title||'').trim(),
     how:      Array.isArray(p.how) ? p.how.map(s=>s.trim()).filter(Boolean) : [],
     howShort: Array.isArray(p.howShort) ? p.howShort.map(s=>s.trim()).filter(Boolean) : [],
@@ -1826,7 +1871,6 @@ document.getElementById('btnParseReply').addEventListener('click', function() {
     detail:   (p.detail||'').trim(),
     keywords: Array.isArray(p.keywords) ? p.keywords.map(s=>s.trim()).filter(Boolean) : [],
     detectiveName: (p.detectiveName||'').trim(),
-    steps:    (p.steps||'').trim(),
     sources:  [{work:bookName, author:authorName||(parsed.author&&parsed.author.name)||'', example:(p.example||'').trim()}],
   })).filter(p=>p.title&&p.summary);
 
@@ -2018,7 +2062,7 @@ document.getElementById('btnConfirmMerge').addEventListener('click', async () =>
 
   const newEntry = {
     id: nextId++,
-    cat:      ['trick','concept','narrative','detective-move','case-logic'].includes(mergedEntry.cat) ? mergedEntry.cat : 'trick',
+    cat:      ['trick','concept','narrative','detective-move'].includes(mergedEntry.cat) ? mergedEntry.cat : 'trick',
     title:    (mergedEntry.title||'').trim(),
     how:      Array.isArray(mergedEntry.how) ? mergedEntry.how : [],
     howShort: Array.isArray(mergedEntry.howShort) ? mergedEntry.howShort : [],
@@ -2029,7 +2073,6 @@ document.getElementById('btnConfirmMerge').addEventListener('click', async () =>
     sources:  mergedSources,
     keywords:      Array.isArray(mergedEntry.keywords) ? mergedEntry.keywords : [],
     detectiveName: (mergedEntry.detectiveName||'').trim(),
-    steps:         (mergedEntry.steps||'').trim(),
     notes:    '',
     date:     today(),
   };
@@ -2061,6 +2104,59 @@ document.getElementById('btnMergeBack').addEventListener('click', () => {
 document.getElementById('mergeModalClose').addEventListener('click', () => closeModal('mergeModal'));
 document.getElementById('btnMergeCancel2').addEventListener('click', () => closeModal('mergeModal'));
 document.getElementById('mergeModal').addEventListener('click', e => { if (e.target.id==='mergeModal') closeModal('mergeModal'); });
+// ══════════════════════════════════════════════
+//  CASE LOGIC CRUD (accessed from book library)
+// ══════════════════════════════════════════════
+function openAddCL() {
+  editingCLId = null;
+  document.getElementById('clModalTitle').textContent = 'NEW · 推理逻辑';
+  ['clWork','clCase','clSteps','clNotes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('clSaveMsg').textContent = '';
+  openModal('clModal');
+}
+
+function openEditCL(id) {
+  const c = caseLogics.find(x => x.id === id); if (!c) return;
+  editingCLId = id;
+  document.getElementById('clModalTitle').textContent = 'EDIT · 推理逻辑';
+  document.getElementById('clWork').value  = c.work  || '';
+  document.getElementById('clCase').value  = c.case_ || '';
+  document.getElementById('clSteps').value = c.steps || '';
+  document.getElementById('clNotes').value = c.notes || '';
+  document.getElementById('clSaveMsg').textContent = '';
+  openModal('clModal');
+}
+
+async function submitCL() {
+  const work  = document.getElementById('clWork').value.trim();
+  const steps = document.getElementById('clSteps').value.trim();
+  if (!work || !steps) { alert('请填写书名和推理步骤'); return; }
+  const btn = document.getElementById('btnSubmitCL'); btn.disabled = true; btn.textContent = '保存中…';
+  const c = {
+    id: editingCLId || nextCLId++,
+    work, case_: document.getElementById('clCase').value.trim(),
+    steps, notes: document.getElementById('clNotes').value.trim(), date: today()
+  };
+  if (editingCLId) { const i = caseLogics.findIndex(x => x.id === editingCLId); caseLogics[i] = c; }
+  else caseLogics.unshift(c);
+  const ok = await ghSave(); btn.disabled = false; btn.textContent = '归档 · ARCHIVE';
+  const msg = document.getElementById('clSaveMsg'); msg.style.color = ok ? '#6aaa5a' : '#c44'; msg.textContent = ok ? '✓ 已保存' : '⚠ 本地缓存';
+  renderBooks();
+  if (ok) setTimeout(() => closeModal('clModal'), 800);
+}
+
+async function delCL(id) {
+  if (!confirm('确认删除？')) return;
+  caseLogics = caseLogics.filter(c => c.id !== id);
+  await ghSave(); renderBooks();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('btnSubmitCL').addEventListener('click', submitCL);
+  document.getElementById('btnCancelCL').addEventListener('click', () => closeModal('clModal'));
+  document.getElementById('clModalClose').addEventListener('click', () => closeModal('clModal'));
+  document.getElementById('clModal').addEventListener('click', e => { if (e.target.id === 'clModal') closeModal('clModal'); });
+});
 
 </script>
 

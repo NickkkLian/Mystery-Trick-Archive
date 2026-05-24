@@ -915,12 +915,42 @@ document.getElementById('btnCopyPrompt').addEventListener('click', () => {
 //  JSON PARSER
 // ══════════════════════════════════════════════
 function parseJson(raw) {
-  // Extract from fenced block, or find outermost { } or [ ]
   let m = raw.match(/(?:```|~~~)(?:json)?\s*([\s\S]*?)(?:```|~~~)/);
-  const str = m ? m[1].trim()
-    : (raw.match(/(\{[\s\S]*\})/) || raw.match(/(\[[\s\S]*\])/) || [])[1];
+  let str;
+  if (m) {
+    str = m[1].trim();
+  } else {
+    const objMatch = raw.match(/(\{[\s\S]*\})/);
+    const arrMatch = raw.match(/(\[[\s\S]*\])/);
+    // Pick whichever starts earlier so arrays aren't stripped of their []
+    if (objMatch && arrMatch) {
+      str = raw.indexOf('[') < raw.indexOf('{') ? arrMatch[1] : objMatch[1];
+    } else {
+      str = (objMatch || arrMatch || [])[1];
+    }
+  }
   if (!str) return null;
-  try { return JSON.parse(str); } catch(e) { return null; }
+  try { return JSON.parse(str); } catch(e) {}
+  // Fix unescaped inner double quotes inside string values
+  let fixed = '', inStr = false, i = 0;
+  while (i < str.length) {
+    const ch = str[i];
+    if (!inStr) { fixed += ch; if (ch === '"') inStr = true; i++; continue; }
+    if (ch === '\\') { fixed += ch + (str[i+1] || ''); i += 2; continue; }
+    if (ch === '"') {
+      let j = i + 1;
+      while (j < str.length && ' \t\r\n'.includes(str[j])) j++;
+      const next = str[j];
+      if (next === ',' || next === '}' || next === ']' || next === ':' || j >= str.length) {
+        fixed += '"'; inStr = false; i++; continue;
+      }
+      fixed += '\\"'; i++; continue;
+    }
+    if (ch === '\n') { fixed += '\\n'; i++; continue; }
+    if (ch === '\r') { i++; continue; }
+    fixed += ch; i++;
+  }
+  try { return JSON.parse(fixed); } catch(e) { return null; }
 }
 
 // ══════════════════════════════════════════════

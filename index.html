@@ -768,7 +768,7 @@ function renderTricks() {
       ${srcLine?`<div class="card-sources">${srcLine}</div>`:''}
       <div class="card-summary">${esc(e.summary)}</div>
       <div class="card-meta">
-        <div class="card-pills">${(e.keywords||[]).slice(0,3).map(k=>`<span class="pill">${esc(k)}</span>`).join('')}</div>
+        <div class="card-pills">${e.cat==='trick'?(e.keywords||[]).slice(0,3).map(k=>`<span class="pill">${esc(k)}</span>`).join(''):''}</div>
         <div class="card-date">${e.date?e.date.replace(/-/g,'.'):'　'}</div>
       </div>
     </div>`;
@@ -852,7 +852,7 @@ function openDetail(id) {
     <div class="d-label">简述</div><div class="d-text">${esc(e.summary)}</div>
     ${e.detail?`<div class="d-hr"></div><div class="d-label">详细分析</div><div class="d-text">${esc(e.detail)}</div>`:''}
     ${srcHtml?`<div class="d-hr"></div><div class="d-label">书中运用示例</div><div class="d-examples">${srcHtml}</div>`:''}
-    ${(e.keywords||[]).length?`<div class="d-hr"></div><div class="d-label">关键词</div><div class="d-keywords">${e.keywords.map(k=>`<span class="d-keyword">${esc(k)}</span>`).join('')}</div>`:''}
+    ${e.cat==='trick'&&(e.keywords||[]).length?`<div class="d-hr"></div><div class="d-label">关键词</div><div class="d-keywords">${e.keywords.map(k=>`<span class="d-keyword">${esc(k)}</span>`).join('')}</div>`:''}
     ${e.notes?`<div class="d-hr"></div><div class="d-label">备注</div><div class="d-text" style="font-style:italic">${esc(e.notes)}</div>`:''}
     ${e.date?`<div class="d-hr"></div><div class="d-label">归档日期</div><div class="d-text" style="font-size:12px">${esc(e.date.replace(/-/g,'.'))}</div>`:''}
   `;

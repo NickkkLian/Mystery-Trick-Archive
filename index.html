@@ -1159,8 +1159,8 @@ document.getElementById('btnDoImport').addEventListener('click', async () => {
 
   const btn = document.getElementById('btnDoImport'); btn.disabled=true; btn.textContent='保存中…';
 
+  // Import entries
   selected.forEach(e => {
-    // Check if same title already exists — if so, merge source
     const existing = entries.find(x => x.title.trim() === e.title.trim());
     if (existing) {
       e.sources.forEach(s => {
@@ -1172,6 +1172,34 @@ document.getElementById('btnDoImport').addEventListener('click', async () => {
     }
   });
 
+  // Import author
+  if (window._pendingAuthor && document.getElementById('importAuthorCheck')?.checked) {
+    const a = window._pendingAuthor;
+    const name = (a.name||'').trim() || window._pendingAuthorName;
+    if (name) {
+      const existing = authors.find(x=>x.name===name);
+      if (existing) { if (a.style && !existing.style) existing.style = a.style; }
+      else authors.push({id:nextAuthorId++, name, style:a.style||'', notes:''});
+    }
+  }
+
+  // Import detectives
+  (window._pendingDetectives||[]).forEach((d,i)=>{
+    const cb = document.querySelector('.det-import-check[data-idx="'+i+'"]');
+    if (!cb || !cb.checked) return;
+    const name = (d.name||'').trim(); if(!name) return;
+    const aName = (d.authorName||'').trim() || window._pendingAuthorName;
+    const existing = detectives.find(x=>x.name===name&&x.authorName===aName);
+    if (existing) { if (d.trait && !existing.trait) existing.trait = d.trait; }
+    else detectives.push({id:nextDetectiveId++, name, authorName:aName, trait:d.trait||'', notes:''});
+  });
+
+  // Clean up
+  const prev = document.getElementById('authorDetPreview');
+  if (prev) prev.remove();
+  window._pendingAuthor=null; window._pendingDetectives=[];
+
+  // Single save for everything
   const ok = await ghSave();
   btn.disabled=false; btn.textContent='导入选中条目';
   const msg = document.getElementById('importSaveMsg');
@@ -1658,51 +1686,12 @@ document.getElementById('btnParseReply').addEventListener('click', function() {
   showImportStep(2);
 });
 
-// Override btnDoImport to also save author/detective
-const _origBtnDoImport = document.getElementById('btnDoImport');
-_origBtnDoImport.addEventListener('click', async function() {
-  // Import author
-  if (window._pendingAuthor && document.getElementById('importAuthorCheck')?.checked) {
-    const a = window._pendingAuthor;
-    const name = (a.name||'').trim() || window._pendingAuthorName;
-    if (name) {
-      const existing = authors.find(x=>x.name===name);
-      if (existing) {
-        // merge style if new content
-        if (a.style && !existing.style) existing.style = a.style;
-      } else {
-        authors.push({id:nextAuthorId++, name, style:a.style||'', notes:''});
-      }
-    }
-  }
-  // Import detectives
-  (window._pendingDetectives||[]).forEach((d,i)=>{
-    const cb = document.querySelector('.det-import-check[data-idx="'+i+'"]');
-    if (!cb || !cb.checked) return;
-    const name = (d.name||'').trim(); if(!name) return;
-    const authorName = (d.authorName||'').trim() || window._pendingAuthorName;
-    const existing = detectives.find(x=>x.name===name&&x.authorName===authorName);
-    if (existing) {
-      if (d.trait && !existing.trait) existing.trait = d.trait;
-    } else {
-      detectives.push({id:nextDetectiveId++, name, authorName, trait:d.trait||'', notes:''});
-    }
-  });
-
-  // Clean up preview
-  const prev = document.getElementById('authorDetPreview');
-  if (prev) prev.remove();
-  window._pendingAuthor=null; window._pendingDetectives=[];
-}, {once:false});
-
-// ── wire up new buttons ──
-document.getElementById('btnAddAuthor').addEventListener('click', openAddAuthor);
+// ── wire up author/detective form buttons ──
 document.getElementById('btnSubmitAuthor').addEventListener('click', submitAuthor);
 document.getElementById('btnCancelAuthor').addEventListener('click', ()=>closeModal('authorModal'));
 document.getElementById('authorModalClose').addEventListener('click', ()=>closeModal('authorModal'));
 document.getElementById('authorModal').addEventListener('click', e=>{if(e.target.id==='authorModal')closeModal('authorModal');});
 
-document.getElementById('btnAddDetective').addEventListener('click', openAddDetective);
 document.getElementById('btnSubmitDetective').addEventListener('click', submitDetective);
 document.getElementById('btnCancelDetective').addEventListener('click', ()=>closeModal('detectiveModal'));
 document.getElementById('detectiveModalClose').addEventListener('click', ()=>closeModal('detectiveModal'));
@@ -1907,7 +1896,6 @@ document.getElementById('mergeModal').addEventListener('click', e => { if (e.tar
   <div class="coll-wrap">
     <div class="coll-toolbar">
       <span class="coll-title" id="authorsTitle">AUTHORS · 作者集</span>
-      <button class="btn-primary" id="btnAddAuthor" style="font-size:12px;padding:6px 12px">＋ 新增作者</button>
     </div>
     <div class="coll-list" id="authorList"></div>
     <div class="empty-state" id="authorsEmpty" style="display:none;margin-top:32px">— 暂无作者记录 —</div>
@@ -1919,7 +1907,6 @@ document.getElementById('mergeModal').addEventListener('click', e => { if (e.tar
   <div class="coll-wrap">
     <div class="coll-toolbar">
       <span class="coll-title" id="detectivesTitle">DETECTIVES · 侦探集</span>
-      <button class="btn-primary" id="btnAddDetective" style="font-size:12px;padding:6px 12px">＋ 新增侦探</button>
     </div>
     <div class="coll-list" id="detectiveList"></div>
     <div class="empty-state" id="detectivesEmpty" style="display:none;margin-top:32px">— 暂无侦探记录 —</div>

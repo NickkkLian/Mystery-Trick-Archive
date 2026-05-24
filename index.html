@@ -219,6 +219,36 @@
     .f-hint-ok{color:#6aaa5a;font-family:'Special Elite',monospace;font-size:10.5px;margin-top:4px;}
 
     @media(max-width:600px){.f-row{grid-template-columns:1fr;}.header-stamp{display:none;}.source-item-row{grid-template-columns:1fr;}}
+  
+    /* ══ AUTHORS & DETECTIVES PANELS ══ */
+    .coll-wrap{max-width:1000px;margin:20px auto 0;}
+    .coll-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+    .coll-title{font-family:'Special Elite',monospace;font-size:10px;letter-spacing:3px;color:rgba(242,234,216,.35);}
+    .coll-list{display:flex;flex-direction:column;gap:8px;}
+    .coll-item{background:var(--paper);border:1.5px solid var(--paper-darker);box-shadow:3px 3px 0 var(--paper-darker);}
+    .coll-header{padding:14px 16px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;user-select:none;}
+    .coll-header:hover{background:var(--paper-dark);}
+    .coll-chevron{font-size:10px;color:var(--ink-lighter);transition:transform .2s;min-width:12px;margin-top:4px;}
+    .coll-item.open .coll-chevron{transform:rotate(90deg);}
+    .coll-main{flex:1;}
+    .coll-name{font-size:17px;font-weight:700;color:var(--ink);line-height:1.3;}
+    .coll-sub{font-family:'Special Elite',monospace;font-size:10px;color:var(--ink-lighter);letter-spacing:.8px;margin-top:3px;}
+    .coll-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
+    .coll-badge{font-family:'Special Elite',monospace;font-size:9px;letter-spacing:1px;padding:2px 7px;border:1px solid;}
+    .cb-book{color:var(--blue);border-color:var(--blue);background:var(--blue-faint);}
+    .cb-det{color:var(--gold);border-color:var(--gold);background:var(--gold-faint);}
+    .coll-actions{display:flex;gap:4px;opacity:0;transition:opacity .15s;flex-shrink:0;}
+    .coll-header:hover .coll-actions{opacity:1;}
+    .coll-body{display:none;border-top:1px solid var(--paper-darker);padding:14px 16px;}
+    .coll-item.open .coll-body{display:block;}
+    .coll-section-label{font-family:'Special Elite',monospace;font-size:9px;letter-spacing:3px;color:var(--ink-lighter);margin-bottom:6px;text-transform:uppercase;}
+    .coll-text{font-size:13.5px;line-height:1.85;color:var(--ink-faded);white-space:pre-wrap;margin-bottom:10px;}
+    .coll-links{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+    .coll-link{font-size:12px;color:var(--blue);background:var(--blue-faint);border:1px solid var(--blue);padding:2px 9px;cursor:pointer;}
+    .coll-link:hover{background:var(--blue);color:var(--paper);}
+    .coll-link-gold{color:var(--gold);background:var(--gold-faint);border-color:var(--gold);}
+    .coll-link-gold:hover{background:var(--gold);color:var(--ink);}
+
   </style>
 </head>
 <body>
@@ -237,6 +267,8 @@
 <div class="main-tabs">
   <button class="main-tab active" data-panel="tricks">诡计库</button>
   <button class="main-tab" data-panel="books">书库</button>
+  <button class="main-tab" data-panel="authors">作者集</button>
+  <button class="main-tab" data-panel="detectives">侦探集</button>
 </div>
 
 <!-- ══════════════════ TRICKS PANEL ══════════════════ -->
@@ -1167,6 +1199,521 @@ document.getElementById('whyFilter').addEventListener('change', e=>{ filterWhy=e
   renderTricks();
   if (!cfg.token) setTimeout(()=>openSettings(), 500);
 })();
+
+// ══════════════════════════════════════════════
+//  AUTHORS & DETECTIVES STATE
+// ══════════════════════════════════════════════
+let authors = [];     // [{id, name, style, notes, detectiveIds:[]}]
+let detectives = [];  // [{id, name, authorName, trait, notes}]
+let nextAuthorId = 1, nextDetectiveId = 1;
+let editingAuthorId = null, editingDetectiveId = null;
+
+// ── extend ghLoad / ghSave to include authors & detectives ──
+const _origGhLoad = ghLoad;
+ghLoad = async function() {
+  if (!cfg.token || !cfg.owner || !cfg.repo) return false;
+  setSyncStatus('loading', '同步中…');
+  try {
+    const res = await fetch(ghUrl(), { headers: ghHeaders() });
+    if (res.status === 404) { fileSha=null; entries=[]; authors=[]; detectives=[]; nextId=nextAuthorId=nextDetectiveId=1; setSyncStatus('ok','新文件'); return true; }
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const json = await res.json();
+    fileSha = json.sha;
+    const text = decodeURIComponent(escape(atob(json.content.replace(/\n/g,''))));
+    const data = JSON.parse(text);
+    entries    = data.entries    || [];
+    authors    = data.authors    || [];
+    detectives = data.detectives || [];
+    nextId          = Math.max(0,...entries.map(e=>e.id))+1;
+    nextAuthorId    = Math.max(0,...authors.map(a=>a.id))+1;
+    nextDetectiveId = Math.max(0,...detectives.map(d=>d.id))+1;
+    setSyncStatus('ok','已同步 · '+entries.length+' 条');
+    return true;
+  } catch(e) { setSyncStatus('err','同步失败: '+e.message); return false; }
+};
+
+const _origGhSave = ghSave;
+ghSave = async function() {
+  if (!cfg.token || !cfg.owner || !cfg.repo) {
+    localStorage.setItem('mtrick_local', JSON.stringify({entries,authors,detectives}));
+    setSyncStatus('err','未配置 GitHub，已本地缓存'); return false;
+  }
+  setSyncStatus('loading','保存中…');
+  try {
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify({entries,authors,detectives},null,2))));
+    const body = {message:'update '+new Date().toISOString().slice(0,10), content};
+    if (fileSha) body.sha = fileSha;
+    const res = await fetch(ghUrl(),{method:'PUT',headers:ghHeaders(),body:JSON.stringify(body)});
+    if (!res.ok) { const j=await res.json().catch(()=>{}); throw new Error((j||{}).message||'HTTP '+res.status); }
+    const json = await res.json();
+    fileSha = json.content.sha;
+    setSyncStatus('ok','已保存 · '+entries.length+' 条');
+    return true;
+  } catch(e) { setSyncStatus('err','保存失败: '+e.message); return false; }
+};
+
+// ══════════════════════════════════════════════
+//  RENDER AUTHORS
+// ══════════════════════════════════════════════
+function renderAuthors() {
+  const list = document.getElementById('authorList');
+  const empty = document.getElementById('authorsEmpty');
+  document.getElementById('authorsTitle').textContent = 'AUTHORS · 作者集 · '+authors.length+' 位';
+  if (!authors.length) { list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+
+  list.innerHTML = authors.map((a,ai) => {
+    const books = [...new Set(
+      entries.flatMap(e=>(e.sources||[]).filter(s=>s.author===a.name).map(s=>s.work)).filter(Boolean)
+    )];
+    const dets = detectives.filter(d=>d.authorName===a.name);
+    const bookBadges = books.map(b=>'<span class="coll-badge cb-book">《'+esc(b)+'》</span>').join('');
+    const detBadges  = dets.map(d=>'<span class="coll-badge cb-det">'+esc(d.name)+'</span>').join('');
+    const bookLinks = books.length ? '<div class="coll-section-label">书库作品</div><div class="coll-links">'+
+      books.map(b=>'<span class="coll-link" onclick="switchToBooks(this.dataset.b)" data-b="'+esc(b)+'">'+esc(b)+'</span>').join('')+'</div>' : '';
+    const detLinks = dets.length ? '<div class="coll-section-label">旗下侦探</div><div class="coll-links">'+
+      dets.map(d=>'<span class="coll-link coll-link-gold" onclick="switchToDetective('+d.id+')">'+esc(d.name)+'</span>').join('')+'</div>' : '';
+
+    return '<div class="coll-item" id="author-item-'+ai+'">' +
+      '<div class="coll-header" onclick="toggleColl(this.parentElement.id)">' +
+        '<span class="coll-chevron">▶</span>' +
+        '<div class="coll-main">' +
+          '<div class="coll-name">'+esc(a.name)+'</div>' +
+          '<div class="coll-badges">'+bookBadges+detBadges+'</div>' +
+        '</div>' +
+        '<div class="coll-actions">' +
+          '<button class="card-btn" onclick="event.stopPropagation();openEditAuthor('+a.id+')">✎</button>' +
+          '<button class="card-btn" onclick="event.stopPropagation();delAuthor('+a.id+')">✕</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="coll-body">' +
+        (a.style ? '<div class="coll-section-label">风格碎片</div><div class="coll-text">'+esc(a.style)+'</div>' : '') +
+        bookLinks + detLinks +
+        (a.notes ? '<div class="coll-section-label" style="margin-top:8px">备注</div><div class="coll-text" style="font-style:italic">'+esc(a.notes)+'</div>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+
+function renderDetectives() {
+  const list = document.getElementById('detectiveList');
+  const empty = document.getElementById('detectivesEmpty');
+  document.getElementById('detectivesTitle').textContent = 'DETECTIVES · 侦探集 · '+detectives.length+' 位';
+  if (!detectives.length) { list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+
+  list.innerHTML = detectives.map((d,di) => {
+    const books = [...new Set(
+      entries.flatMap(e=>(e.sources||[]).filter(s=>s.author===d.authorName).map(s=>s.work)).filter(Boolean)
+    )];
+    const bookBadges = books.map(b=>'<span class="coll-badge cb-book">《'+esc(b)+'》</span>').join('');
+    const authorBadge = d.authorName ? '<span class="coll-badge" style="color:var(--ink-lighter);border-color:var(--ink-lighter);background:rgba(0,0,0,0.05)">'+esc(d.authorName)+'</span>' : '';
+    const bookLinks = books.length ? '<div class="coll-section-label">出现作品（书库）</div><div class="coll-links">'+
+      books.map(b=>'<span class="coll-link" onclick="switchToBooks(this.dataset.b)" data-b="'+esc(b)+'">'+esc(b)+'</span>').join('')+'</div>' : '';
+    const authorLink = d.authorName ? '<div class="coll-section-label" style="margin-top:8px">所属作者</div><div class="coll-links"><span class="coll-link coll-link-gold" onclick="switchToAuthor(this.dataset.a)" data-a="'+esc(d.authorName)+'">'+esc(d.authorName)+'</span></div>' : '';
+
+    return '<div class="coll-item" id="detective-item-'+di+'">' +
+      '<div class="coll-header" onclick="toggleColl(this.parentElement.id)">' +
+        '<span class="coll-chevron">▶</span>' +
+        '<div class="coll-main">' +
+          '<div class="coll-name">'+esc(d.name)+'</div>' +
+          '<div class="coll-badges">'+authorBadge+bookBadges+'</div>' +
+        '</div>' +
+        '<div class="coll-actions">' +
+          '<button class="card-btn" onclick="event.stopPropagation();openEditDetective('+d.id+')">✎</button>' +
+          '<button class="card-btn" onclick="event.stopPropagation();delDetective('+d.id+')">✕</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="coll-body">' +
+        (d.trait ? '<div class="coll-section-label">方法论 / 特质</div><div class="coll-text">'+esc(d.trait)+'</div>' : '') +
+        bookLinks + authorLink +
+        (d.notes ? '<div class="coll-section-label" style="margin-top:8px">备注</div><div class="coll-text" style="font-style:italic">'+esc(d.notes)+'</div>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+
+function toggleColl(id) { document.getElementById(id).classList.toggle('open'); }
+
+function switchToBooks(bookName) {
+  document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector('[data-panel="books"]').classList.add('active');
+  document.getElementById('panel-books').classList.add('active');
+  renderBooks();
+  // open the matching book
+  setTimeout(()=>{
+    const items = document.querySelectorAll('.book-item');
+    items.forEach(item=>{
+      if (item.querySelector('.book-name') && item.querySelector('.book-name').textContent.includes(bookName)) {
+        item.classList.add('open');
+        item.scrollIntoView({behavior:'smooth',block:'center'});
+      }
+    });
+  }, 100);
+}
+
+function switchToAuthor(name) {
+  document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector('[data-panel="authors"]').classList.add('active');
+  document.getElementById('panel-authors').classList.add('active');
+  renderAuthors();
+  setTimeout(()=>{
+    const items = document.querySelectorAll('#authorList .coll-item');
+    items.forEach(item=>{
+      if (item.querySelector('.coll-name')?.textContent===name) {
+        item.classList.add('open');
+        item.scrollIntoView({behavior:'smooth',block:'center'});
+      }
+    });
+  },100);
+}
+
+function switchToDetective(id) {
+  document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector('[data-panel="detectives"]').classList.add('active');
+  document.getElementById('panel-detectives').classList.add('active');
+  renderDetectives();
+  setTimeout(()=>{
+    const d = detectives.find(x=>x.id===id);
+    if (!d) return;
+    const items = document.querySelectorAll('#detectiveList .coll-item');
+    items.forEach(item=>{
+      if (item.querySelector('.coll-name')?.textContent===d.name) {
+        item.classList.add('open');
+        item.scrollIntoView({behavior:'smooth',block:'center'});
+      }
+    });
+  },100);
+}
+
+// ══════════════════════════════════════════════
+//  AUTHOR CRUD
+// ══════════════════════════════════════════════
+function openAddAuthor() {
+  editingAuthorId=null;
+  document.getElementById('authorModalTitle').textContent='NEW AUTHOR · 新增作者';
+  ['aName','aStyle','aNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('authorSaveMsg').textContent='';
+  openModal('authorModal');
+}
+function openEditAuthor(id) {
+  const a=authors.find(x=>x.id===id); if(!a) return;
+  editingAuthorId=id;
+  document.getElementById('authorModalTitle').textContent='EDIT AUTHOR · 编辑作者';
+  document.getElementById('aName').value=a.name;
+  document.getElementById('aStyle').value=a.style||'';
+  document.getElementById('aNotes').value=a.notes||'';
+  document.getElementById('authorSaveMsg').textContent='';
+  openModal('authorModal');
+}
+async function submitAuthor() {
+  const name=document.getElementById('aName').value.trim();
+  if (!name) { alert('请填写作者姓名'); return; }
+  const btn=document.getElementById('btnSubmitAuthor'); btn.disabled=true; btn.textContent='保存中…';
+  const entry={id:editingAuthorId||nextAuthorId++, name, style:document.getElementById('aStyle').value.trim(), notes:document.getElementById('aNotes').value.trim()};
+  if (editingAuthorId) { const i=authors.findIndex(a=>a.id===editingAuthorId); authors[i]=entry; }
+  else authors.push(entry);
+  const ok=await ghSave(); btn.disabled=false; btn.textContent='归档 · ARCHIVE';
+  const msg=document.getElementById('authorSaveMsg'); msg.style.color=ok?'#6aaa5a':'#c44'; msg.textContent=ok?'✓ 已保存':'⚠ 本地缓存';
+  renderAuthors();
+  if(ok) setTimeout(()=>closeModal('authorModal'),800);
+}
+async function delAuthor(id) {
+  if(!confirm('确认删除这位作者？')) return;
+  authors=authors.filter(a=>a.id!==id); await ghSave(); renderAuthors();
+}
+
+// ══════════════════════════════════════════════
+//  DETECTIVE CRUD
+// ══════════════════════════════════════════════
+function openAddDetective() {
+  editingDetectiveId=null;
+  document.getElementById('detectiveModalTitle').textContent='NEW DETECTIVE · 新增侦探';
+  ['dName','dAuthor','dTrait','dNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('detectiveSaveMsg').textContent='';
+  openModal('detectiveModal');
+}
+function openEditDetective(id) {
+  const d=detectives.find(x=>x.id===id); if(!d) return;
+  editingDetectiveId=id;
+  document.getElementById('detectiveModalTitle').textContent='EDIT DETECTIVE · 编辑侦探';
+  document.getElementById('dName').value=d.name;
+  document.getElementById('dAuthor').value=d.authorName||'';
+  document.getElementById('dTrait').value=d.trait||'';
+  document.getElementById('dNotes').value=d.notes||'';
+  document.getElementById('detectiveSaveMsg').textContent='';
+  openModal('detectiveModal');
+}
+async function submitDetective() {
+  const name=document.getElementById('dName').value.trim();
+  if (!name) { alert('请填写侦探姓名'); return; }
+  const btn=document.getElementById('btnSubmitDetective'); btn.disabled=true; btn.textContent='保存中…';
+  const entry={id:editingDetectiveId||nextDetectiveId++, name, authorName:document.getElementById('dAuthor').value.trim(), trait:document.getElementById('dTrait').value.trim(), notes:document.getElementById('dNotes').value.trim()};
+  if (editingDetectiveId) { const i=detectives.findIndex(d=>d.id===editingDetectiveId); detectives[i]=entry; }
+  else detectives.push(entry);
+  const ok=await ghSave(); btn.disabled=false; btn.textContent='归档 · ARCHIVE';
+  const msg=document.getElementById('detectiveSaveMsg'); msg.style.color=ok?'#6aaa5a':'#c44'; msg.textContent=ok?'✓ 已保存':'⚠ 本地缓存';
+  renderDetectives();
+  if(ok) setTimeout(()=>closeModal('detectiveModal'),800);
+}
+async function delDetective(id) {
+  if(!confirm('确认删除这个侦探？')) return;
+  detectives=detectives.filter(d=>d.id!==id); await ghSave(); renderDetectives();
+}
+
+// ══════════════════════════════════════════════
+//  IMPORT: UPDATE PROMPT & PARSE FOR AUTHORS/DETECTIVES
+// ══════════════════════════════════════════════
+// Override buildPrompt to include author/detective sections
+const _origBuildPrompt = buildPrompt;
+buildPrompt = function(bookName, author) {
+  const authorLine = author ? '作者：'+author : '';
+  const fence = '```';
+  return '你是一位推理小说专家。请分析以下书目，严格按照以下规则输出：\n\n'+
+    '【规则】\n'+
+    '1. 诡计/概念/叙述手法条目必须是可跨作品复用的通用手法，而非对单次情节的描述（例如"移动椅子"不应成为独立条目，而应归入"改变现场细节以误导勘查"这一通用手法）\n'+
+    '2. 可合并的内容绝对不要拆分成多条\n'+
+    '3. 分类必须唯一：诡计=具体作案手法，概念=理论框架/推理类型，叙述手法=作者叙事层面的技巧\n'+
+    '4. 作者特质和侦探特质只写在对应区块，不要写入条目\n\n'+
+    '书名：《'+bookName+'》\n'+authorLine+'\n\n'+
+    '请输出以下三个JSON区块，直接输出不要任何说明：\n\n'+
+    fence+'json entries\n'+
+    '[\n  {\n    "cat": "trick",\n    "title": "通用手法名称",\n    "how": ["实现手法"],\n    "why": ["目的"],\n    "summary": "核心逻辑",\n    "detail": "深入分析",\n    "example": "书中具体运用（概述）",\n    "keywords": ["关键词"]\n  }\n]\n'+fence+'\n\n'+
+    fence+'json author\n'+
+    '{\n  "name": "'+( author||bookName)+'",\n  "style": "从本书中观察到的作者写作特质、惯用手法、叙事倾向（不超过200字，只写能从本书印证的内容）"\n}\n'+fence+'\n\n'+
+    fence+'json detective\n'+
+    '[\n  {\n    "name": "侦探姓名",\n    "authorName": "'+(author||'')+'",\n    "trait": "在本书中展现的推理方式、性格特质、标志性手法"\n  }\n]\n'+fence+'\n\n'+
+    '如果本书没有固定侦探，detective区块输出空数组[]。';
+};
+
+// Parse the three-block reply
+function parseImportReply(raw) {
+  const result = { entries: null, author: null, detectives: null };
+
+  const entriesM = raw.match(/```json entries\s*([\s\S]*?)```/);
+  const authorM  = raw.match(/```json author\s*([\s\S]*?)```/);
+  const detectM  = raw.match(/```json detective\s*([\s\S]*?)```/);
+
+  if (entriesM) result.entries  = parseJson(entriesM[1].trim());
+  if (authorM)  result.author   = parseJson(authorM[1].trim());
+  if (detectM)  result.detectives = parseJson(detectM[1].trim());
+
+  // Fallback: if no labeled blocks, try original single-array parse
+  if (!result.entries) result.entries = parseJson(raw);
+
+  return result;
+}
+
+// Override btnParseReply to handle the new format
+document.getElementById('btnParseReply').removeEventListener('click', null);
+document.getElementById('btnParseReply').addEventListener('click', function() {
+  const raw = document.getElementById('pasteArea').value;
+  const errEl = document.getElementById('parseErr');
+
+  const parsed = parseImportReply(raw);
+  const bookName = document.getElementById('importBookName').value.trim();
+  const authorName = document.getElementById('importAuthor').value.trim();
+
+  // Validate entries
+  let entriesArr = parsed.entries;
+  if (entriesArr && !Array.isArray(entriesArr)) entriesArr = [entriesArr];
+  if (!entriesArr || !entriesArr.length) {
+    errEl.textContent='✕ 未找到条目 JSON'; errEl.style.display='block'; return;
+  }
+  errEl.style.display='none';
+
+  // Store parsed author/detectives for later import
+  window._pendingAuthor = parsed.author;
+  window._pendingDetectives = Array.isArray(parsed.detectives) ? parsed.detectives : [];
+  window._pendingBookName = bookName;
+  window._pendingAuthorName = authorName || (parsed.author && parsed.author.name) || '';
+
+  parsedImports = entriesArr.map(p => ({
+    cat:      ['trick','concept','narrative'].includes(p.cat) ? p.cat : 'trick',
+    title:    (p.title||'').trim(),
+    how:      Array.isArray(p.how) ? p.how.map(s=>s.trim()).filter(Boolean) : [],
+    why:      Array.isArray(p.why) ? p.why.map(s=>s.trim()).filter(Boolean) : [],
+    summary:  (p.summary||'').trim(),
+    detail:   (p.detail||'').trim(),
+    keywords: Array.isArray(p.keywords) ? p.keywords.map(s=>s.trim()).filter(Boolean) : [],
+    sources:  [{work:bookName, author:authorName||(parsed.author&&parsed.author.name)||'', example:(p.example||'').trim()}],
+  })).filter(p=>p.title&&p.summary);
+
+  renderPreview(parsedImports);
+
+  // Show author/detective preview below entries
+  const previewList = document.getElementById('previewList');
+  const authorPreviewHtml = parsed.author ? `
+    <div style="margin-top:14px;padding:10px 12px;background:var(--blue-faint);border:1.5px solid var(--blue)">
+      <div style="font-family:'Special Elite',monospace;font-size:9px;letter-spacing:2px;color:var(--blue);margin-bottom:5px">AUTHOR · 作者</div>
+      <div style="font-weight:700;color:var(--ink);margin-bottom:3px">${esc((parsed.author.name||''))}</div>
+      <div style="font-size:12px;color:var(--ink-faded)">${esc((parsed.author.style||'').slice(0,120))}${(parsed.author.style||'').length>120?'…':''}</div>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;cursor:pointer">
+        <input type="checkbox" id="importAuthorCheck" checked /> 导入此作者信息
+      </label>
+    </div>` : '';
+
+  const detPreviewHtml = (window._pendingDetectives||[]).filter(d=>d.name).map((d,i)=>`
+    <div style="margin-top:8px;padding:10px 12px;background:var(--gold-faint);border:1.5px solid var(--gold)">
+      <div style="font-family:'Special Elite',monospace;font-size:9px;letter-spacing:2px;color:var(--gold);margin-bottom:5px">DETECTIVE · 侦探</div>
+      <div style="font-weight:700;color:var(--ink);margin-bottom:3px">${esc(d.name)}</div>
+      <div style="font-size:12px;color:var(--ink-faded)">${esc((d.trait||'').slice(0,120))}${(d.trait||'').length>120?'…':''}</div>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;cursor:pointer">
+        <input type="checkbox" class="det-import-check" data-idx="${i}" checked /> 导入此侦探
+      </label>
+    </div>`).join('');
+
+  previewList.insertAdjacentHTML('afterend', '<div id="authorDetPreview">'+authorPreviewHtml+detPreviewHtml+'</div>');
+
+  showImportStep(2);
+});
+
+// Override btnDoImport to also save author/detective
+const _origBtnDoImport = document.getElementById('btnDoImport');
+_origBtnDoImport.addEventListener('click', async function() {
+  // Import author
+  if (window._pendingAuthor && document.getElementById('importAuthorCheck')?.checked) {
+    const a = window._pendingAuthor;
+    const name = (a.name||'').trim() || window._pendingAuthorName;
+    if (name) {
+      const existing = authors.find(x=>x.name===name);
+      if (existing) {
+        // merge style if new content
+        if (a.style && !existing.style) existing.style = a.style;
+      } else {
+        authors.push({id:nextAuthorId++, name, style:a.style||'', notes:''});
+      }
+    }
+  }
+  // Import detectives
+  (window._pendingDetectives||[]).forEach((d,i)=>{
+    const cb = document.querySelector('.det-import-check[data-idx="'+i+'"]');
+    if (!cb || !cb.checked) return;
+    const name = (d.name||'').trim(); if(!name) return;
+    const authorName = (d.authorName||'').trim() || window._pendingAuthorName;
+    const existing = detectives.find(x=>x.name===name&&x.authorName===authorName);
+    if (existing) {
+      if (d.trait && !existing.trait) existing.trait = d.trait;
+    } else {
+      detectives.push({id:nextDetectiveId++, name, authorName, trait:d.trait||'', notes:''});
+    }
+  });
+
+  // Clean up preview
+  const prev = document.getElementById('authorDetPreview');
+  if (prev) prev.remove();
+  window._pendingAuthor=null; window._pendingDetectives=[];
+}, {once:false});
+
+// ── wire up new buttons ──
+document.getElementById('btnAddAuthor').addEventListener('click', openAddAuthor);
+document.getElementById('btnSubmitAuthor').addEventListener('click', submitAuthor);
+document.getElementById('btnCancelAuthor').addEventListener('click', ()=>closeModal('authorModal'));
+document.getElementById('authorModalClose').addEventListener('click', ()=>closeModal('authorModal'));
+document.getElementById('authorModal').addEventListener('click', e=>{if(e.target.id==='authorModal')closeModal('authorModal');});
+
+document.getElementById('btnAddDetective').addEventListener('click', openAddDetective);
+document.getElementById('btnSubmitDetective').addEventListener('click', submitDetective);
+document.getElementById('btnCancelDetective').addEventListener('click', ()=>closeModal('detectiveModal'));
+document.getElementById('detectiveModalClose').addEventListener('click', ()=>closeModal('detectiveModal'));
+document.getElementById('detectiveModal').addEventListener('click', e=>{if(e.target.id==='detectiveModal')closeModal('detectiveModal');});
+
+// ── extend main tab switching for new panels ──
+document.querySelectorAll('.main-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    if (tab.dataset.panel==='authors')    renderAuthors();
+    if (tab.dataset.panel==='detectives') renderDetectives();
+  });
+});
+
 </script>
+
+<!-- ══ AUTHORS PANEL ══ -->
+<div class="panel" id="panel-authors">
+  <div class="coll-wrap">
+    <div class="coll-toolbar">
+      <span class="coll-title" id="authorsTitle">AUTHORS · 作者集</span>
+      <button class="btn-primary" id="btnAddAuthor" style="font-size:12px;padding:6px 12px">＋ 新增作者</button>
+    </div>
+    <div class="coll-list" id="authorList"></div>
+    <div class="empty-state" id="authorsEmpty" style="display:none;margin-top:32px">— 暂无作者记录 —</div>
+  </div>
+</div>
+
+<!-- ══ DETECTIVES PANEL ══ -->
+<div class="panel" id="panel-detectives">
+  <div class="coll-wrap">
+    <div class="coll-toolbar">
+      <span class="coll-title" id="detectivesTitle">DETECTIVES · 侦探集</span>
+      <button class="btn-primary" id="btnAddDetective" style="font-size:12px;padding:6px 12px">＋ 新增侦探</button>
+    </div>
+    <div class="coll-list" id="detectiveList"></div>
+    <div class="empty-state" id="detectivesEmpty" style="display:none;margin-top:32px">— 暂无侦探记录 —</div>
+  </div>
+</div>
+
+<!-- ══ AUTHOR FORM MODAL ══ -->
+<div class="modal-overlay" id="authorModal">
+  <div class="modal">
+    <div class="modal-header"><h2 id="authorModalTitle">NEW AUTHOR · 新增作者</h2><button class="modal-close" id="authorModalClose">✕</button></div>
+    <div class="modal-body">
+      <div class="f-group">
+        <label class="f-label">作者姓名 *</label>
+        <input class="f-input" id="aName" type="text" placeholder="作者名…" />
+      </div>
+      <div class="f-group">
+        <label class="f-label">风格碎片（从作品中提炼的特质）</label>
+        <textarea class="f-textarea" id="aStyle" placeholder="从书库里的作品中，你观察到的这位作者的写作特质、惯用手法、叙事倾向…" style="min-height:110px"></textarea>
+      </div>
+      <div class="f-group">
+        <label class="f-label">备注</label>
+        <textarea class="f-textarea" id="aNotes" placeholder="个人备注…" style="min-height:60px"></textarea>
+      </div>
+      <div class="f-actions">
+        <button class="btn-submit" id="btnSubmitAuthor">归档 · ARCHIVE</button>
+        <button class="btn-cancel" id="btnCancelAuthor">取消</button>
+        <span class="save-msg" id="authorSaveMsg"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DETECTIVE FORM MODAL ══ -->
+<div class="modal-overlay" id="detectiveModal">
+  <div class="modal">
+    <div class="modal-header"><h2 id="detectiveModalTitle">NEW DETECTIVE · 新增侦探</h2><button class="modal-close" id="detectiveModalClose">✕</button></div>
+    <div class="modal-body">
+      <div class="f-row">
+        <div class="f-group">
+          <label class="f-label">侦探姓名 *</label>
+          <input class="f-input" id="dName" type="text" placeholder="侦探名…" />
+        </div>
+        <div class="f-group">
+          <label class="f-label">所属作者</label>
+          <input class="f-input" id="dAuthor" type="text" placeholder="作者名…" />
+        </div>
+      </div>
+      <div class="f-group">
+        <label class="f-label">方法论 / 特质（仅基于书库中已有作品）</label>
+        <textarea class="f-textarea" id="dTrait" placeholder="这个侦探在书库里的作品中展现出的推理方式、性格特质、标志性手法…" style="min-height:110px"></textarea>
+      </div>
+      <div class="f-group">
+        <label class="f-label">备注</label>
+        <textarea class="f-textarea" id="dNotes" placeholder="个人备注…" style="min-height:60px"></textarea>
+      </div>
+      <div class="f-actions">
+        <button class="btn-submit" id="btnSubmitDetective">归档 · ARCHIVE</button>
+        <button class="btn-cancel" id="btnCancelDetective">取消</button>
+        <span class="save-msg" id="detectiveSaveMsg"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

@@ -514,6 +514,123 @@
   </div>
 </div>
 
+
+<!-- ══ AUTHORS PANEL ══ -->
+<div class="panel" id="panel-authors">
+  <div class="coll-wrap">
+    <div class="coll-toolbar">
+      <span class="coll-title" id="authorsTitle">AUTHORS · 作者集</span>
+    </div>
+    <div class="coll-list" id="authorList"></div>
+    <div class="empty-state" id="authorsEmpty" style="display:none;margin-top:32px">— 暂无作者记录 —</div>
+  </div>
+</div>
+
+<!-- ══ DETECTIVES PANEL ══ -->
+<div class="panel" id="panel-detectives">
+  <div class="coll-wrap">
+    <div class="coll-toolbar">
+      <span class="coll-title" id="detectivesTitle">DETECTIVES · 侦探集</span>
+    </div>
+    <div class="coll-list" id="detectiveList"></div>
+    <div class="empty-state" id="detectivesEmpty" style="display:none;margin-top:32px">— 暂无侦探记录 —</div>
+  </div>
+</div>
+
+<!-- ══ AUTHOR FORM MODAL ══ -->
+<div class="modal-overlay" id="authorModal">
+  <div class="modal">
+    <div class="modal-header"><h2 id="authorModalTitle">NEW AUTHOR · 新增作者</h2><button class="modal-close" id="authorModalClose">✕</button></div>
+    <div class="modal-body">
+      <div class="f-group">
+        <label class="f-label">作者姓名 *</label>
+        <input class="f-input" id="aName" type="text" placeholder="作者名…" />
+      </div>
+      <div class="f-group">
+        <label class="f-label">风格碎片（从作品中提炼的特质）</label>
+        <textarea class="f-textarea" id="aStyle" placeholder="从书库里的作品中，你观察到的这位作者的写作特质、惯用手法、叙事倾向…" style="min-height:110px"></textarea>
+      </div>
+      <div class="f-group">
+        <label class="f-label">备注</label>
+        <textarea class="f-textarea" id="aNotes" placeholder="个人备注…" style="min-height:60px"></textarea>
+      </div>
+      <div class="f-actions">
+        <button class="btn-submit" id="btnSubmitAuthor">归档 · ARCHIVE</button>
+        <button class="btn-cancel" id="btnCancelAuthor">取消</button>
+        <span class="save-msg" id="authorSaveMsg"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DETECTIVE FORM MODAL ══ -->
+<div class="modal-overlay" id="detectiveModal">
+  <div class="modal">
+    <div class="modal-header"><h2 id="detectiveModalTitle">NEW DETECTIVE · 新增侦探</h2><button class="modal-close" id="detectiveModalClose">✕</button></div>
+    <div class="modal-body">
+      <div class="f-row">
+        <div class="f-group">
+          <label class="f-label">侦探姓名 *</label>
+          <input class="f-input" id="dName" type="text" placeholder="侦探名…" />
+        </div>
+        <div class="f-group">
+          <label class="f-label">所属作者</label>
+          <input class="f-input" id="dAuthor" type="text" placeholder="作者名…" />
+        </div>
+      </div>
+      <div class="f-group">
+        <label class="f-label">方法论 / 特质（仅基于书库中已有作品）</label>
+        <textarea class="f-textarea" id="dTrait" placeholder="这个侦探在书库里的作品中展现出的推理方式、性格特质、标志性手法…" style="min-height:110px"></textarea>
+      </div>
+      <div class="f-group">
+        <label class="f-label">备注</label>
+        <textarea class="f-textarea" id="dNotes" placeholder="个人备注…" style="min-height:60px"></textarea>
+      </div>
+      <div class="f-actions">
+        <button class="btn-submit" id="btnSubmitDetective">归档 · ARCHIVE</button>
+        <button class="btn-cancel" id="btnCancelDetective">取消</button>
+        <span class="save-msg" id="detectiveSaveMsg"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ MERGE MODAL ══ -->
+<div class="modal-overlay" id="mergeModal">
+  <div class="modal">
+    <div class="modal-header"><h2>MERGE · 合并条目</h2><button class="modal-close" id="mergeModalClose">✕</button></div>
+    <div class="modal-body">
+      <p class="f-label" style="margin-bottom:6px">把下面这段 prompt 复制，粘贴到 Claude 新对话里：</p>
+      <div class="prompt-box" id="mergePromptBox" style="max-height:200px;font-size:11px"></div>
+      <div style="display:flex;gap:8px;align-items:center;margin:8px 0 18px">
+        <button class="btn-copy" id="btnCopyMergePrompt">复制 Prompt</button>
+        <span id="mergeCopyConfirm" style="font-family:'Special Elite',monospace;font-size:10px;color:#6aaa5a;opacity:0;transition:opacity .3s"></span>
+      </div>
+      <hr class="f-hr" />
+      <p class="f-label" style="margin-bottom:6px">把 Claude 的回复粘贴到这里：</p>
+      <textarea class="paste-area" id="mergePasteArea" style="min-height:140px" placeholder="粘贴 Claude 的完整回复…"></textarea>
+      <div class="parse-err" id="mergeParseErr" style="display:none;margin-top:6px"></div>
+      <div class="f-actions" style="margin-top:10px">
+        <button class="btn-submit" id="btnApplyMerge">预览合并结果</button>
+        <button class="btn-cancel" id="btnMergeCancel2">取消</button>
+      </div>
+      <!-- preview of merged entry -->
+      <div id="mergePreview" style="display:none;margin-top:16px">
+        <hr class="f-hr" />
+        <p class="f-label" style="margin-bottom:8px">合并后的条目：</p>
+        <div id="mergePreviewContent" style="background:var(--paper-dark);border:1.5px solid var(--paper-darker);padding:14px"></div>
+        <div class="f-actions" style="margin-top:12px">
+          <button class="btn-submit" id="btnConfirmMerge">确认合并并删除原条目</button>
+          <button class="btn-cancel" id="btnMergeBack">← 返回修改</button>
+          <span class="save-msg" id="mergeSaveMsg"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <script>
 // ══════════════════════════════════════════════
 //  CONFIG
@@ -1041,6 +1158,27 @@ function parseJson(raw) {
 // ══════════════════════════════════════════════
 //  IMPORT: PARSE & PREVIEW
 // ══════════════════════════════════════════════
+
+function strSimilarity(a, b) {
+  a = a.toLowerCase().replace(/\s/g,'');
+  b = b.toLowerCase().replace(/\s/g,'');
+  if (a === b) return 1;
+  if (!a || !b) return 0;
+  if (a.includes(b) || b.includes(a)) return 0.85;
+  const sa = new Set(a), sb = new Set(b);
+  let shared = 0;
+  sa.forEach(c => { if (sb.has(c)) shared++; });
+  return shared / Math.max(sa.size, sb.size);
+}
+
+function findSimilarEntry(title) {
+  let best = null, bestScore = 0;
+  entries.forEach(e => {
+    const score = strSimilarity(title, e.title);
+    if (score > bestScore) { bestScore = score; best = e; }
+  });
+  return bestScore >= 0.6 ? { entry: best, score: bestScore } : null;
+}
 
 function updateSelectedCount() {
   const total = parsedImports.length;
@@ -1585,16 +1723,19 @@ document.getElementById('btnParseReply').addEventListener('click', function() {
   showImportStep(2);
 });
 
-// ── wire up author/detective form buttons ──
-document.getElementById('btnSubmitAuthor').addEventListener('click', submitAuthor);
-document.getElementById('btnCancelAuthor').addEventListener('click', ()=>closeModal('authorModal'));
-document.getElementById('authorModalClose').addEventListener('click', ()=>closeModal('authorModal'));
-document.getElementById('authorModal').addEventListener('click', e=>{if(e.target.id==='authorModal')closeModal('authorModal');});
+// ── wire up author/detective form buttons (deferred — modals injected after script) ──
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('btnSubmitAuthor').addEventListener('click', submitAuthor);
+  document.getElementById('btnCancelAuthor').addEventListener('click', ()=>closeModal('authorModal'));
+  document.getElementById('authorModalClose').addEventListener('click', ()=>closeModal('authorModal'));
+  document.getElementById('authorModal').addEventListener('click', e=>{if(e.target.id==='authorModal')closeModal('authorModal');});
 
-document.getElementById('btnSubmitDetective').addEventListener('click', submitDetective);
-document.getElementById('btnCancelDetective').addEventListener('click', ()=>closeModal('detectiveModal'));
-document.getElementById('detectiveModalClose').addEventListener('click', ()=>closeModal('detectiveModal'));
-document.getElementById('detectiveModal').addEventListener('click', e=>{if(e.target.id==='detectiveModal')closeModal('detectiveModal');});
+  document.getElementById('btnSubmitDetective').addEventListener('click', submitDetective);
+  document.getElementById('btnCancelDetective').addEventListener('click', ()=>closeModal('detectiveModal'));
+  document.getElementById('detectiveModalClose').addEventListener('click', ()=>closeModal('detectiveModal'));
+  document.getElementById('detectiveModal').addEventListener('click', e=>{if(e.target.id==='detectiveModal')closeModal('detectiveModal');});
+
+});
 
 // ── extend main tab switching for new panels ──
 document.querySelectorAll('.main-tab').forEach(tab => {
@@ -1788,121 +1929,6 @@ document.getElementById('btnMergeCancel2').addEventListener('click', () => close
 document.getElementById('mergeModal').addEventListener('click', e => { if (e.target.id==='mergeModal') closeModal('mergeModal'); });
 
 </script>
-
-<!-- ══ AUTHORS PANEL ══ -->
-<div class="panel" id="panel-authors">
-  <div class="coll-wrap">
-    <div class="coll-toolbar">
-      <span class="coll-title" id="authorsTitle">AUTHORS · 作者集</span>
-    </div>
-    <div class="coll-list" id="authorList"></div>
-    <div class="empty-state" id="authorsEmpty" style="display:none;margin-top:32px">— 暂无作者记录 —</div>
-  </div>
-</div>
-
-<!-- ══ DETECTIVES PANEL ══ -->
-<div class="panel" id="panel-detectives">
-  <div class="coll-wrap">
-    <div class="coll-toolbar">
-      <span class="coll-title" id="detectivesTitle">DETECTIVES · 侦探集</span>
-    </div>
-    <div class="coll-list" id="detectiveList"></div>
-    <div class="empty-state" id="detectivesEmpty" style="display:none;margin-top:32px">— 暂无侦探记录 —</div>
-  </div>
-</div>
-
-<!-- ══ AUTHOR FORM MODAL ══ -->
-<div class="modal-overlay" id="authorModal">
-  <div class="modal">
-    <div class="modal-header"><h2 id="authorModalTitle">NEW AUTHOR · 新增作者</h2><button class="modal-close" id="authorModalClose">✕</button></div>
-    <div class="modal-body">
-      <div class="f-group">
-        <label class="f-label">作者姓名 *</label>
-        <input class="f-input" id="aName" type="text" placeholder="作者名…" />
-      </div>
-      <div class="f-group">
-        <label class="f-label">风格碎片（从作品中提炼的特质）</label>
-        <textarea class="f-textarea" id="aStyle" placeholder="从书库里的作品中，你观察到的这位作者的写作特质、惯用手法、叙事倾向…" style="min-height:110px"></textarea>
-      </div>
-      <div class="f-group">
-        <label class="f-label">备注</label>
-        <textarea class="f-textarea" id="aNotes" placeholder="个人备注…" style="min-height:60px"></textarea>
-      </div>
-      <div class="f-actions">
-        <button class="btn-submit" id="btnSubmitAuthor">归档 · ARCHIVE</button>
-        <button class="btn-cancel" id="btnCancelAuthor">取消</button>
-        <span class="save-msg" id="authorSaveMsg"></span>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ DETECTIVE FORM MODAL ══ -->
-<div class="modal-overlay" id="detectiveModal">
-  <div class="modal">
-    <div class="modal-header"><h2 id="detectiveModalTitle">NEW DETECTIVE · 新增侦探</h2><button class="modal-close" id="detectiveModalClose">✕</button></div>
-    <div class="modal-body">
-      <div class="f-row">
-        <div class="f-group">
-          <label class="f-label">侦探姓名 *</label>
-          <input class="f-input" id="dName" type="text" placeholder="侦探名…" />
-        </div>
-        <div class="f-group">
-          <label class="f-label">所属作者</label>
-          <input class="f-input" id="dAuthor" type="text" placeholder="作者名…" />
-        </div>
-      </div>
-      <div class="f-group">
-        <label class="f-label">方法论 / 特质（仅基于书库中已有作品）</label>
-        <textarea class="f-textarea" id="dTrait" placeholder="这个侦探在书库里的作品中展现出的推理方式、性格特质、标志性手法…" style="min-height:110px"></textarea>
-      </div>
-      <div class="f-group">
-        <label class="f-label">备注</label>
-        <textarea class="f-textarea" id="dNotes" placeholder="个人备注…" style="min-height:60px"></textarea>
-      </div>
-      <div class="f-actions">
-        <button class="btn-submit" id="btnSubmitDetective">归档 · ARCHIVE</button>
-        <button class="btn-cancel" id="btnCancelDetective">取消</button>
-        <span class="save-msg" id="detectiveSaveMsg"></span>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<!-- ══ MERGE MODAL ══ -->
-<div class="modal-overlay" id="mergeModal">
-  <div class="modal">
-    <div class="modal-header"><h2>MERGE · 合并条目</h2><button class="modal-close" id="mergeModalClose">✕</button></div>
-    <div class="modal-body">
-      <p class="f-label" style="margin-bottom:6px">把下面这段 prompt 复制，粘贴到 Claude 新对话里：</p>
-      <div class="prompt-box" id="mergePromptBox" style="max-height:200px;font-size:11px"></div>
-      <div style="display:flex;gap:8px;align-items:center;margin:8px 0 18px">
-        <button class="btn-copy" id="btnCopyMergePrompt">复制 Prompt</button>
-        <span id="mergeCopyConfirm" style="font-family:'Special Elite',monospace;font-size:10px;color:#6aaa5a;opacity:0;transition:opacity .3s"></span>
-      </div>
-      <hr class="f-hr" />
-      <p class="f-label" style="margin-bottom:6px">把 Claude 的回复粘贴到这里：</p>
-      <textarea class="paste-area" id="mergePasteArea" style="min-height:140px" placeholder="粘贴 Claude 的完整回复…"></textarea>
-      <div class="parse-err" id="mergeParseErr" style="display:none;margin-top:6px"></div>
-      <div class="f-actions" style="margin-top:10px">
-        <button class="btn-submit" id="btnApplyMerge">预览合并结果</button>
-        <button class="btn-cancel" id="btnMergeCancel2">取消</button>
-      </div>
-      <!-- preview of merged entry -->
-      <div id="mergePreview" style="display:none;margin-top:16px">
-        <hr class="f-hr" />
-        <p class="f-label" style="margin-bottom:8px">合并后的条目：</p>
-        <div id="mergePreviewContent" style="background:var(--paper-dark);border:1.5px solid var(--paper-darker);padding:14px"></div>
-        <div class="f-actions" style="margin-top:12px">
-          <button class="btn-submit" id="btnConfirmMerge">确认合并并删除原条目</button>
-          <button class="btn-cancel" id="btnMergeBack">← 返回修改</button>
-          <span class="save-msg" id="mergeSaveMsg"></span>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
 </body>
 </html>

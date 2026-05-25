@@ -2129,8 +2129,14 @@ renderTricks = function() {
 function buildMergePrompt() {
   const selected = entries.filter(e => mergeSelected.has(e.id));
   const fence = '```';
+
+  // Infer cat: if all same cat, use that; otherwise let Claude decide
+  const cats = [...new Set(selected.map(e => e.cat))];
+  const inferredCat = cats.length === 1 ? cats[0] : 'trick/concept/narrative/detective-move';
+
+  const catMap = {'trick':'诡计','concept':'概念','narrative':'叙述手法','detective-move':'侦探做法'};
   const entriesText = selected.map((e,i) =>
-    '【条目' + (i+1) + '】' + e.title + '（' + ({'trick':'诡计','concept':'概念','narrative':'叙述手法'}[e.cat]||e.cat) + '）\n' +
+    '【条目' + (i+1) + '】' + e.title + '（' + (catMap[e.cat]||e.cat) + '）\n' +
     '简述：' + e.summary + '\n' +
     (e.detail ? '详细：' + e.detail + '\n' : '') +
     (e.how&&e.how.length ? '手法：' + e.how.join('、') + '\n' : '') +
@@ -2139,23 +2145,26 @@ function buildMergePrompt() {
     ((e.sources||[]).map(s => s.work ? '来源：《'+s.work+'》' + (s.example?'——'+s.example:'') : '').filter(Boolean).join('\n'))
   ).join('\n\n');
 
-  return '以下是推理逻辑库中需要合并的' + selected.length + '个条目，请将它们合并为一个更完整、准确的单一条目。\n\n' +
+  return '以下是需要合并的' + selected.length + '个条目，请将它们合并为一个更完整、准确的单一条目。\n\n' +
     entriesText + '\n\n' +
     '合并要求：\n' +
-    '1. 条目名称简洁，优先使用推理界约定俗成的术语，不造新词\n' +
-    '2. summary 和 detail 综合所有条目内容，去除重复，保留最有价值的分析\n' +
-    '3. 来源示例全部保留\n' +
-    '4. 请以 JSON 格式输出（直接输出不要任何说明）：\n\n' +
+    '1. 条目名称简洁，优先使用现实中已有的术语（推理界、逻辑学、心理学等均可），无现成术语则精炼描述，不造新词\n' +
+    '2. cat 保持原有分类：' + (cats.length === 1 ? '"' + cats[0] + '"' : '根据内容判断，可选 trick/concept/narrative/detective-move') + '\n' +
+    '3. summary 和 detail 综合所有条目内容，去除重复，保留最有价值的分析\n' +
+    '4. 来源示例全部保留\n' +
+    '5. 直接输出 JSON，不要任何说明：\n\n' +
     fence + 'json\n' +
     '{\n' +
-    '  "cat": "trick",\n' +
-    '  "title": "合并后的条目名称",\n' +
-    '  "how": ["实现手法描述"],\n' +
-    '  "why": ["目的描述"],\n' +
-    '  "summary": "合并后的简述",\n' +
-    '  "detail": "合并后的详细分析",\n' +
-    '  "keywords": ["关键词"],\n' +
-    '  "sources": [{"work":"书名","author":"作者","example":"示例"}]\n' +
+    '  "cat": "' + inferredCat + '",\n' +
+    '  "title": "合并后名称",\n' +
+    '  "how": [],\n' +
+    '  "howShort": [],\n' +
+    '  "why": [],\n' +
+    '  "whyShort": [],\n' +
+    '  "summary": "",\n' +
+    '  "detail": "",\n' +
+    '  "keywords": [],\n' +
+    '  "sources": [{"work":"","author":"","example":""}]\n' +
     '}\n' +
     fence;
 }

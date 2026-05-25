@@ -1512,7 +1512,7 @@ document.getElementById('btnDoImport').addEventListener('click', async () => {
       date: today(),
     });
   });
-  caseLogics.unshift(...newCLs.reverse());
+  caseLogics.unshift(...newCLs);
 
   window._pendingAuthor=null; window._pendingDetectives=[]; window._pendingCaseLogics=[];
 
@@ -2356,7 +2356,7 @@ window.addEventListener('DOMContentLoaded', () => {
         return cb && cb.checked;
       });
       btn.disabled = true; btn.textContent = '保存中…';
-      caseLogics.unshift(...[...selected].reverse().map(c => ({
+      caseLogics.unshift(...selected.map(c => ({
         id: nextCLId++, work, case_: (c.case_||'').trim(), steps: (c.steps||'').trim(), notes: '', date: today()
       })));
       const ok = await ghSave();

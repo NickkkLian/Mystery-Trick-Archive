@@ -740,6 +740,7 @@
       <div id="trickPromptPreview" style="display:none;margin-top:12px"></div>
       <div class="f-actions" style="margin-top:10px">
         <button class="btn-submit" id="btnParseTrickReply">解析结果</button>
+        <button class="btn-submit" id="btnConfirmTrickImport" style="display:none">确认导入</button>
         <button class="btn-cancel" id="btnTrickPromptCancel">取消</button>
         <span class="save-msg" id="trickPromptSaveMsg"></span>
       </div>
@@ -2502,24 +2503,37 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>`;
     }).join('');
     preview.style.display = 'block';
+    document.getElementById('btnParseTrickReply').style.display = 'none';
+    document.getElementById('btnConfirmTrickImport').style.display = '';
+    document.getElementById('btnConfirmTrickImport').dataset.work = work;
+    document.getElementById('btnConfirmTrickImport').dataset.author = author;
+    // Store items for confirm step
+    window._pendingTrickItems = items;
+  });
 
-    const btn = document.getElementById('btnParseTrickReply');
-    btn.textContent = '确认导入';
-    btn.onclick = async () => {
-      const selected = items.filter((_,i) => {
-        const cb = document.querySelector(`.trick-prompt-check[data-idx="${i}"]`);
-        return cb && cb.checked;
-      });
-      btn.disabled = true; btn.textContent = '保存中…';
-      selected.forEach(e => entries.unshift({ id: nextId++, date: today(), ...e }));
-      const ok = await ghSave();
-      btn.disabled = false;
-      const msg = document.getElementById('trickPromptSaveMsg');
-      msg.style.color = ok ? '#6aaa5a' : '#c44';
-      msg.textContent = ok ? `✓ 已导入 ${selected.length} 条` : '⚠ 本地缓存';
-      renderTricks(); renderBooks();
-      if (ok) setTimeout(() => closeModal('trickPromptModal'), 800);
-    };
+  document.getElementById('btnConfirmTrickImport').addEventListener('click', async () => {
+    const items = window._pendingTrickItems || [];
+    const selected = items.filter((_,i) => {
+      const cb = document.querySelector(`.trick-prompt-check[data-idx="${i}"]`);
+      return cb && cb.checked;
+    });
+    const btn = document.getElementById('btnConfirmTrickImport');
+    btn.disabled = true; btn.textContent = '保存中…';
+    selected.forEach(e => entries.unshift({ id: nextId++, date: today(), ...e }));
+    const ok = await ghSave();
+    btn.disabled = false; btn.textContent = '确认导入';
+    const msg = document.getElementById('trickPromptSaveMsg');
+    msg.style.color = ok ? '#6aaa5a' : '#c44';
+    msg.textContent = ok ? `✓ 已导入 ${selected.length} 条` : '⚠ 本地缓存';
+    renderTricks(); renderBooks();
+    if (ok) {
+      setTimeout(() => {
+        closeModal('trickPromptModal');
+        document.getElementById('btnParseTrickReply').style.display = '';
+        document.getElementById('btnConfirmTrickImport').style.display = 'none';
+        window._pendingTrickItems = [];
+      }, 800);
+    }
   });
 
   document.getElementById('btnTrickPromptCancel').addEventListener('click', () => closeModal('trickPromptModal'));

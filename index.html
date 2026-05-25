@@ -1525,6 +1525,31 @@ document.getElementById('whyFilter').addEventListener('change', e=>{ filterWhy=e
     entries.forEach(e => { if (e.cat !== 'trick') e.keywords = []; });
     ghSave();
   }
+
+  // Migrate: move case-logic entries into caseLogics array
+  const caseLogicEntries = entries.filter(e => e.cat === 'case-logic');
+  if (caseLogicEntries.length) {
+    caseLogicEntries.forEach(e => {
+      // Avoid duplicate migration
+      const alreadyMigrated = caseLogics.some(c =>
+        c.work === ((e.sources||[])[0]||{}).work && c.steps === (e.steps||e.detail||'')
+      );
+      if (!alreadyMigrated) {
+        caseLogics.push({
+          id: nextCLId++,
+          work:  ((e.sources||[])[0]||{}).work || e.title,
+          case_: e.title || '',
+          steps: e.steps || e.detail || e.summary || '',
+          notes: e.notes || '',
+          date:  e.date || today(),
+        });
+      }
+    });
+    // Remove from entries
+    entries = entries.filter(e => e.cat !== 'case-logic');
+    ghSave();
+    console.log(`Migrated ${caseLogicEntries.length} case-logic entries to caseLogics`);
+  }
   renderTricks();
   if (!cfg.token) setTimeout(()=>openSettings(), 500);
 })();

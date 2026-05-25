@@ -2433,7 +2433,9 @@ window.addEventListener('DOMContentLoaded', () => {
     const work = document.getElementById('trickPromptModal').dataset.work || '';
     const author = document.getElementById('trickPromptModal').dataset.author || '';
 
-    let arr = parseJson(raw);
+    // Extract entries block (labeled or plain)
+    const fenceMatch = raw.match(/(?:```|~~~)json\s+entries\s*([\s\S]*?)(?:```|~~~)/i);
+    let arr = fenceMatch ? parseJson(fenceMatch[1].trim()) : parseJson(raw);
     if (arr && !Array.isArray(arr)) arr = [arr];
     if (!arr || !arr.length) {
       errEl.textContent = '✕ 未找到可解析的 JSON'; errEl.style.display = 'block'; return;

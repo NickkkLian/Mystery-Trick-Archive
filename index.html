@@ -697,6 +697,31 @@
   </div>
 </div>
 
+<!-- ══ CASE LOGIC PROMPT MODAL ══ -->
+<div class="modal-overlay" id="clPromptModal">
+  <div class="modal">
+    <div class="modal-header"><h2 id="clPromptModalTitle">推理逻辑 · 生成 Prompt</h2><button class="modal-close" id="clPromptModalClose">✕</button></div>
+    <div class="modal-body">
+      <p class="f-label" style="margin-bottom:6px">把下面这段 prompt 复制到 Claude 新对话：</p>
+      <div class="prompt-box" id="clPromptBox" style="max-height:180px;font-size:11px"></div>
+      <div style="display:flex;gap:8px;align-items:center;margin:8px 0 16px">
+        <button class="btn-copy" id="btnCopyCLPrompt">复制 Prompt</button>
+        <span id="clPromptCopyConfirm" style="font-family:'Special Elite',monospace;font-size:10px;color:#6aaa5a;opacity:0;transition:opacity .3s"></span>
+      </div>
+      <hr class="f-hr" />
+      <p class="f-label" style="margin-bottom:6px">把 Claude 的回复粘贴到这里：</p>
+      <textarea class="paste-area" id="clPromptPasteArea" style="min-height:120px" placeholder="粘贴 Claude 的完整回复…"></textarea>
+      <div class="parse-err" id="clPromptParseErr" style="display:none;margin-top:6px"></div>
+      <div id="clPromptPreview" style="display:none;margin-top:12px"></div>
+      <div class="f-actions" style="margin-top:10px">
+        <button class="btn-submit" id="btnParseCLReply">解析结果</button>
+        <button class="btn-cancel" id="btnCLPromptCancel">取消</button>
+        <span class="save-msg" id="clPromptSaveMsg"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════════════
 //  CONFIG
@@ -924,8 +949,35 @@ function renderBooks() {
 }
 
 function openAddCLForBook(work, author) {
-  openAddCL();
-  document.getElementById('clWork').value = work;
+  const fence = '```';
+  const prompt = `你是一位推理小说专家。请为《${work}》生成推理逻辑条目。
+
+推理逻辑记录的是侦探的核心推理链条，以及故事层面谜题（身份、性别、家族关系等）的揭露过程。
+
+要求：
+- 每步必须是推理跳跃的依据，格式：[前提/证据] → [能推出什么结论/排除什么]
+- 不要复述情节，要抓住逻辑跳跃
+- 每个独立的案件或谜题单独一条
+
+请直接输出 JSON，不要任何说明：
+
+${fence}json case-logic
+[
+  {
+    "case_": "案件或谜题名称",
+    "steps": "第一步逻辑\\n第二步逻辑\\n→ 最终结论"
+  }
+]
+${fence}`;
+
+  document.getElementById('clPromptModalTitle').textContent = `《${work}》· 推理逻辑`;
+  document.getElementById('clPromptBox').textContent = prompt;
+  document.getElementById('clPromptPasteArea').value = '';
+  document.getElementById('clPromptParseErr').style.display = 'none';
+  document.getElementById('clPromptPreview').style.display = 'none';
+  document.getElementById('clPromptSaveMsg').textContent = '';
+  document.getElementById('clPromptModal').dataset.work = work;
+  openModal('clPromptModal');
 }
 
 function toggleBook(bi) {
@@ -1415,7 +1467,22 @@ document.getElementById('btnDoImport').addEventListener('click', async () => {
   // Clean up
   const prev = document.getElementById('authorDetPreview');
   if (prev) prev.remove();
-  window._pendingAuthor=null; window._pendingDetectives=[];
+
+  // Import case logics
+  (window._pendingCaseLogics||[]).forEach((c,i) => {
+    const cb = document.querySelector('.cl-import-check[data-idx="'+i+'"]');
+    if (!cb || !cb.checked) return;
+    caseLogics.unshift({
+      id: nextCLId++,
+      work: window._pendingBookName || '',
+      case_: (c.case_||'').trim(),
+      steps: (c.steps||'').trim(),
+      notes: '',
+      date: today(),
+    });
+  });
+
+  window._pendingAuthor=null; window._pendingDetectives=[]; window._pendingCaseLogics=[];
 
   // Single save for everything
   const ok = await ghSave();
@@ -1785,7 +1852,7 @@ buildPrompt = function(bookName, author) {
   return `你是一位推理小说专家。请分析《${bookName}》${author ? '（作者：'+author+'）' : ''}，提取值得记录的条目。
 
 【分类定义】
-trick（诡计）：凶手实施犯罪的手法。必须可跨作品复用，不记录一次性情节细节。
+trick（诡计）：故事中设置的欺骗机制，包括作案手法（凶手如何犯罪）和故事层面的身份、性别、家族关系等隐藏真相的诡计。必须可跨作品复用。
 concept（概念）：逻辑学、哲学或推理理论中已有命名的原则，例如"奥卡姆剃刀""假说演绎法""契科夫之枪""演绎法"。不得编造新概念，concept 条目必须是现实中真实存在的命名术语。
 narrative（叙述手法）：作者控制叙事信息的技巧。必须使用推理界已有术语，如"不可靠叙述者""叙述性诡计""限制视角"。不得自创词汇。
 detective-move（侦探做法）：侦探为达到特定目的而采取的非常规行动，如"侦探诱供""侦探以自身为诱饵""侦探亲手处决凶手"。常规操作（公开揭秘、访问证人）不值得记录。
@@ -1836,28 +1903,34 @@ ${fence}json detective
 ]
 ${fence}
 
-没有固定侦探则 detective 输出空数组 []。`;
+${fence}json case-logic
+[
+  {
+    "case_": "案件或谜题名称",
+    "steps": "推理链条，每行一步。每步必须是推理跳跃的依据，而非情节描述。格式：[前提/证据] → [能推出什么结论/排除什么]。最后一行为最终结论。"
+  }
+]
+${fence}
+
+没有固定侦探则 detective 输出空数组 []。没有值得记录的推理逻辑则 case-logic 输出空数组 []。`;
 };
 
 // Parse the three-block reply
 function parseImportReply(raw) {
-  const result = { entries: null, author: null, detectives: null };
+  const result = { entries: null, author: null, detectives: null, caseLogics: null };
 
-  // Match fenced blocks with optional label: ```json entries, ```json author, ```json detective
-  // Also handle ~~~, and labels on same line as fence
-  const fence = /(?:```|~~~)json\s+(\w+)\s*([\s\S]*?)(?:```|~~~)/g;
+  const fence = /(?:```|~~~)json\s+([\w-]+)\s*([\s\S]*?)(?:```|~~~)/g;
   let m;
   while ((m = fence.exec(raw)) !== null) {
     const label = m[1].toLowerCase();
     const content = parseJson(m[2].trim());
-    if (label === 'entries')   result.entries    = content;
-    if (label === 'author')    result.author     = content;
-    if (label === 'detective') result.detectives = content;
+    if (label === 'entries')    result.entries    = content;
+    if (label === 'author')     result.author     = content;
+    if (label === 'detective')  result.detectives = content;
+    if (label === 'case-logic') result.caseLogics = content;
   }
 
-  // Fallback: no labeled blocks → try parsing entire reply as plain JSON array
   if (!result.entries) result.entries = parseJson(raw);
-
   return result;
 }
 
@@ -1882,6 +1955,7 @@ document.getElementById('btnParseReply').addEventListener('click', function() {
   // Store parsed author/detectives for later import
   window._pendingAuthor = parsed.author;
   window._pendingDetectives = Array.isArray(parsed.detectives) ? parsed.detectives : [];
+  window._pendingCaseLogics = Array.isArray(parsed.caseLogics) ? parsed.caseLogics.filter(c=>c.steps) : [];
   window._pendingBookName = bookName;
   window._pendingAuthorName = authorName || (parsed.author && parsed.author.name) || '';
 
@@ -1923,7 +1997,17 @@ document.getElementById('btnParseReply').addEventListener('click', function() {
       </label>
     </div>`).join('');
 
-  previewList.insertAdjacentHTML('afterend', '<div id="authorDetPreview">'+authorPreviewHtml+detPreviewHtml+'</div>');
+  const clPreviewHtml = (window._pendingCaseLogics||[]).map((c,i) => `
+    <div style="margin-top:8px;padding:10px 12px;background:var(--paper-dark);border:1.5px solid var(--paper-darker)">
+      <div style="font-family:'Special Elite',monospace;font-size:9px;letter-spacing:2px;color:var(--ink-lighter);margin-bottom:5px">CASE LOGIC · 推理逻辑</div>
+      <div style="font-weight:700;color:var(--ink);margin-bottom:3px">${esc(c.case_||'推理逻辑')}</div>
+      <div style="font-size:12px;color:var(--ink-faded)">${esc((c.steps||'').split('\n')[0])}${(c.steps||'').includes('\n')?'…':''}</div>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;cursor:pointer">
+        <input type="checkbox" class="cl-import-check" data-idx="${i}" checked /> 导入此推理逻辑
+      </label>
+    </div>`).join('');
+
+  previewList.insertAdjacentHTML('afterend', '<div id="authorDetPreview">'+authorPreviewHtml+detPreviewHtml+clPreviewHtml+'</div>');
 
   showImportStep(2);
 });
@@ -2181,6 +2265,72 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnCancelCL').addEventListener('click', () => closeModal('clModal'));
   document.getElementById('clModalClose').addEventListener('click', () => closeModal('clModal'));
   document.getElementById('clModal').addEventListener('click', e => { if (e.target.id === 'clModal') closeModal('clModal'); });
+});
+// ── Case Logic Prompt Modal ──
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('btnCopyCLPrompt').addEventListener('click', () => {
+    navigator.clipboard.writeText(document.getElementById('clPromptBox').textContent).then(() => {
+      const el = document.getElementById('clPromptCopyConfirm');
+      el.textContent = '✓ 已复制'; el.style.opacity = '1';
+      setTimeout(() => { el.style.opacity = '0'; }, 2000);
+    });
+  });
+
+  document.getElementById('btnParseCLReply').addEventListener('click', async () => {
+    const raw = document.getElementById('clPromptPasteArea').value.trim();
+    const errEl = document.getElementById('clPromptParseErr');
+    const work = document.getElementById('clPromptModal').dataset.work || '';
+
+    // Extract case-logic block
+    const fence = /(?:```|~~~)json\s+case-logic\s*([\s\S]*?)(?:```|~~~)/i;
+    const m = raw.match(fence);
+    const content = m ? parseJson(m[1].trim()) : parseJson(raw);
+    const items = Array.isArray(content) ? content.filter(c => c.steps) : [];
+
+    if (!items.length) {
+      errEl.textContent = '✕ 未找到可解析的推理逻辑'; errEl.style.display = 'block'; return;
+    }
+    errEl.style.display = 'none';
+
+    // Preview
+    const preview = document.getElementById('clPromptPreview');
+    preview.innerHTML = items.map((c,i) => `
+      <div style="margin-bottom:8px;padding:10px 12px;background:var(--paper-dark);border:1.5px solid var(--paper-darker)">
+        <div style="font-family:'Special Elite',monospace;font-size:9px;color:var(--ink-lighter);letter-spacing:2px;margin-bottom:4px">CASE LOGIC</div>
+        <div style="font-weight:700;margin-bottom:4px">${esc(c.case_||'推理逻辑')}</div>
+        <div style="font-size:12px;color:var(--ink-faded)">${esc((c.steps||'').split('\n')[0])}${(c.steps||'').includes('\n')?'…':''}</div>
+        <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;cursor:pointer">
+          <input type="checkbox" class="cl-prompt-check" data-idx="${i}" checked /> 导入
+        </label>
+      </div>`).join('');
+    preview.dataset.items = JSON.stringify(items);
+    preview.style.display = 'block';
+
+    // Change button to confirm
+    const btn = document.getElementById('btnParseCLReply');
+    btn.textContent = '确认导入';
+    btn.onclick = async () => {
+      const selected = items.filter((_,i) => {
+        const cb = document.querySelector(`.cl-prompt-check[data-idx="${i}"]`);
+        return cb && cb.checked;
+      });
+      btn.disabled = true; btn.textContent = '保存中…';
+      selected.forEach(c => {
+        caseLogics.unshift({ id: nextCLId++, work, case_: (c.case_||'').trim(), steps: (c.steps||'').trim(), notes: '', date: today() });
+      });
+      const ok = await ghSave();
+      btn.disabled = false;
+      const msg = document.getElementById('clPromptSaveMsg');
+      msg.style.color = ok ? '#6aaa5a' : '#c44';
+      msg.textContent = ok ? `✓ 已导入 ${selected.length} 条` : '⚠ 本地缓存';
+      renderBooks();
+      if (ok) setTimeout(() => { closeModal('clPromptModal'); btn.textContent = '解析结果'; btn.onclick = null; }, 800);
+    };
+  });
+
+  document.getElementById('btnCLPromptCancel').addEventListener('click', () => closeModal('clPromptModal'));
+  document.getElementById('clPromptModalClose').addEventListener('click', () => closeModal('clPromptModal'));
+  document.getElementById('clPromptModal').addEventListener('click', e => { if (e.target.id === 'clPromptModal') closeModal('clPromptModal'); });
 });
 
 </script>

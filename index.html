@@ -1499,10 +1499,11 @@ document.getElementById('btnDoImport').addEventListener('click', async () => {
   if (prev) prev.remove();
 
   // Import case logics
+  const newCLs = [];
   (window._pendingCaseLogics||[]).forEach((c,i) => {
     const cb = document.querySelector('.cl-import-check[data-idx="'+i+'"]');
     if (!cb || !cb.checked) return;
-    caseLogics.unshift({
+    newCLs.push({
       id: nextCLId++,
       work: window._pendingBookName || '',
       case_: (c.case_||'').trim(),
@@ -1511,6 +1512,7 @@ document.getElementById('btnDoImport').addEventListener('click', async () => {
       date: today(),
     });
   });
+  caseLogics.unshift(...newCLs.reverse());
 
   window._pendingAuthor=null; window._pendingDetectives=[]; window._pendingCaseLogics=[];
 
@@ -2354,9 +2356,9 @@ window.addEventListener('DOMContentLoaded', () => {
         return cb && cb.checked;
       });
       btn.disabled = true; btn.textContent = '保存中…';
-      selected.forEach(c => {
-        caseLogics.unshift({ id: nextCLId++, work, case_: (c.case_||'').trim(), steps: (c.steps||'').trim(), notes: '', date: today() });
-      });
+      caseLogics.unshift(...[...selected].reverse().map(c => ({
+        id: nextCLId++, work, case_: (c.case_||'').trim(), steps: (c.steps||'').trim(), notes: '', date: today()
+      })));
       const ok = await ghSave();
       btn.disabled = false;
       const msg = document.getElementById('clPromptSaveMsg');

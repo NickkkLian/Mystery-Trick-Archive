@@ -722,6 +722,31 @@
   </div>
 </div>
 
+<!-- ══ TRICK PROMPT MODAL ══ -->
+<div class="modal-overlay" id="trickPromptModal">
+  <div class="modal">
+    <div class="modal-header"><h2 id="trickPromptModalTitle">增补条目 · 生成 Prompt</h2><button class="modal-close" id="trickPromptModalClose">✕</button></div>
+    <div class="modal-body">
+      <p class="f-label" style="margin-bottom:6px">把下面这段 prompt 复制到 Claude 新对话：</p>
+      <div class="prompt-box" id="trickPromptBox" style="max-height:180px;font-size:11px"></div>
+      <div style="display:flex;gap:8px;align-items:center;margin:8px 0 16px">
+        <button class="btn-copy" id="btnCopyTrickPrompt">复制 Prompt</button>
+        <span id="trickPromptCopyConfirm" style="font-family:'Special Elite',monospace;font-size:10px;color:#6aaa5a;opacity:0;transition:opacity .3s"></span>
+      </div>
+      <hr class="f-hr" />
+      <p class="f-label" style="margin-bottom:6px">把 Claude 的回复粘贴到这里：</p>
+      <textarea class="paste-area" id="trickPromptPasteArea" style="min-height:120px" placeholder="粘贴 Claude 的完整回复…"></textarea>
+      <div class="parse-err" id="trickPromptParseErr" style="display:none;margin-top:6px"></div>
+      <div id="trickPromptPreview" style="display:none;margin-top:12px"></div>
+      <div class="f-actions" style="margin-top:10px">
+        <button class="btn-submit" id="btnParseTrickReply">解析结果</button>
+        <button class="btn-cancel" id="btnTrickPromptCancel">取消</button>
+        <span class="save-msg" id="trickPromptSaveMsg"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════════════
 //  CONFIG
@@ -942,6 +967,7 @@ function renderBooks() {
           ${b.author?`<div class="book-author">${esc(b.author)}</div>`:''}
         </div>
         <div class="book-counts">${badges}</div>
+        <button class="card-btn" style="opacity:.6;font-size:10px;padding:2px 7px;width:auto;white-space:nowrap" title="增补条目" onclick="event.stopPropagation();openAddTrickForBook('${esc(b.work)}','${esc(b.author||'')}')">＋ 条目</button>
       </div>
       <div class="book-entries">${rows}${logicSection}</div>
     </div>`;
@@ -2331,6 +2357,146 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnCLPromptCancel').addEventListener('click', () => closeModal('clPromptModal'));
   document.getElementById('clPromptModalClose').addEventListener('click', () => closeModal('clPromptModal'));
   document.getElementById('clPromptModal').addEventListener('click', e => { if (e.target.id === 'clPromptModal') closeModal('clPromptModal'); });
+});
+// ── Trick Prompt Modal ──
+function openAddTrickForBook(work, author) {
+  const fence = '```';
+  // Build list of existing entries for this book to avoid duplicates
+  const existing = entries
+    .filter(e => (e.sources||[]).some(s => s.work === work))
+    .map(e => `- [${CAT_LABEL[e.cat]||e.cat}] ${e.title}`)
+    .join('\n');
+
+  const prompt = `你是一位推理小说专家。请为《${work}》${author ? '（作者：'+author+'）' : ''}增补条目。
+
+【已有条目，不要重复】
+${existing || '（暂无）'}
+
+【分类定义】
+trick（诡计）：故事中的欺骗机制，包括作案手法和身份、性别、家族关系等隐藏真相的诡计。必须可跨作品复用。
+concept（概念）：逻辑学、哲学或推理理论中已有命名的原则，如"奥卡姆剃刀""假说演绎法"。不得编造。
+narrative（叙述手法）：作者控制叙事信息的技巧，使用已有术语如"不可靠叙述者""叙述性诡计"。
+detective-move（侦探做法）：侦探为达目的采取的非常规行动。
+
+【硬性规则】
+1. 一个条目只表达一个独立概念
+2. title 优先使用已有术语；无则精炼描述
+3. title 和 summary 不含具体人名书名（放 example）；人名用中文
+4. 作者特质和侦探特质不写入条目
+
+请直接输出 JSON，不要任何说明：
+
+${fence}json entries
+[
+  {
+    "cat": "trick/concept/narrative/detective-move",
+    "title": "简洁名称",
+    "how": ["实现手法（仅 trick，其余 []）"],
+    "howShort": ["手法缩略词（仅 trick，其余 []）"],
+    "why": ["目的（仅 trick，其余 []）"],
+    "whyShort": ["目的缩略词（仅 trick，其余 []）"],
+    "summary": "一两句通用描述",
+    "detail": "深入分析",
+    "example": "书中具体运用",
+    "keywords": ["关键词（仅 trick，其余 []）"],
+    "detectiveName": "侦探中文名（仅 detective-move，其余 ''）"
+  }
+]
+${fence}`;
+
+  document.getElementById('trickPromptModalTitle').textContent = `《${work}》· 增补条目`;
+  document.getElementById('trickPromptBox').textContent = prompt;
+  document.getElementById('trickPromptPasteArea').value = '';
+  document.getElementById('trickPromptParseErr').style.display = 'none';
+  document.getElementById('trickPromptPreview').style.display = 'none';
+  document.getElementById('trickPromptSaveMsg').textContent = '';
+  document.getElementById('trickPromptModal').dataset.work = work;
+  document.getElementById('trickPromptModal').dataset.author = author;
+  const parseBtn = document.getElementById('btnParseTrickReply');
+  parseBtn.textContent = '解析结果';
+  parseBtn.onclick = null;
+  openModal('trickPromptModal');
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('btnCopyTrickPrompt').addEventListener('click', () => {
+    navigator.clipboard.writeText(document.getElementById('trickPromptBox').textContent).then(() => {
+      const el = document.getElementById('trickPromptCopyConfirm');
+      el.textContent = '✓ 已复制'; el.style.opacity = '1';
+      setTimeout(() => { el.style.opacity = '0'; }, 2000);
+    });
+  });
+
+  document.getElementById('btnParseTrickReply').addEventListener('click', function() {
+    const raw = document.getElementById('trickPromptPasteArea').value.trim();
+    const errEl = document.getElementById('trickPromptParseErr');
+    const work = document.getElementById('trickPromptModal').dataset.work || '';
+    const author = document.getElementById('trickPromptModal').dataset.author || '';
+
+    let arr = parseJson(raw);
+    if (arr && !Array.isArray(arr)) arr = [arr];
+    if (!arr || !arr.length) {
+      errEl.textContent = '✕ 未找到可解析的 JSON'; errEl.style.display = 'block'; return;
+    }
+    errEl.style.display = 'none';
+
+    const items = arr.map(p => ({
+      cat:      ['trick','concept','narrative','detective-move'].includes(p.cat) ? p.cat : 'trick',
+      title:    (p.title||'').trim(),
+      how:      Array.isArray(p.how) ? p.how.map(s=>s.trim()).filter(Boolean) : [],
+      howShort: Array.isArray(p.howShort) ? p.howShort.map(s=>s.trim()).filter(Boolean) : [],
+      why:      Array.isArray(p.why) ? p.why.map(s=>s.trim()).filter(Boolean) : [],
+      whyShort: Array.isArray(p.whyShort) ? p.whyShort.map(s=>s.trim()).filter(Boolean) : [],
+      summary:  (p.summary||'').trim(),
+      detail:   (p.detail||'').trim(),
+      keywords: Array.isArray(p.keywords) ? p.keywords.map(s=>s.trim()).filter(Boolean) : [],
+      detectiveName: (p.detectiveName||'').trim(),
+      steps: '',
+      sources: [{work, author, example: (p.example||'').trim()}],
+    })).filter(p => p.title && p.summary);
+
+    if (!items.length) {
+      errEl.textContent = '✕ 没有有效条目（需要 title 和 summary）'; errEl.style.display = 'block'; return;
+    }
+
+    const preview = document.getElementById('trickPromptPreview');
+    preview.innerHTML = items.map((e,i) => {
+      const similar = findSimilarEntry(e.title);
+      const warn = similar ? `<div style="font-size:11px;color:var(--gold);margin-top:3px">⚠ 疑似重复：「${esc(similar.entry.title)}」</div>` : '';
+      return `<div style="padding:8px 12px;margin-bottom:6px;background:var(--paper-dark);border:1.5px solid var(--paper-darker)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+          <input type="checkbox" class="trick-prompt-check" data-idx="${i}" checked />
+          <span style="font-weight:700">${esc(e.title)}</span>
+          <span class="card-cat ${CAT_CLASS[e.cat]||'cat-trick'}">${CAT_LABEL[e.cat]||e.cat}</span>
+        </div>
+        <div style="font-size:12px;color:var(--ink-faded)">${esc(e.summary)}</div>
+        ${warn}
+      </div>`;
+    }).join('');
+    preview.style.display = 'block';
+
+    const btn = document.getElementById('btnParseTrickReply');
+    btn.textContent = '确认导入';
+    btn.onclick = async () => {
+      const selected = items.filter((_,i) => {
+        const cb = document.querySelector(`.trick-prompt-check[data-idx="${i}"]`);
+        return cb && cb.checked;
+      });
+      btn.disabled = true; btn.textContent = '保存中…';
+      selected.forEach(e => entries.unshift({ id: nextId++, date: today(), ...e }));
+      const ok = await ghSave();
+      btn.disabled = false;
+      const msg = document.getElementById('trickPromptSaveMsg');
+      msg.style.color = ok ? '#6aaa5a' : '#c44';
+      msg.textContent = ok ? `✓ 已导入 ${selected.length} 条` : '⚠ 本地缓存';
+      renderTricks(); renderBooks();
+      if (ok) setTimeout(() => closeModal('trickPromptModal'), 800);
+    };
+  });
+
+  document.getElementById('btnTrickPromptCancel').addEventListener('click', () => closeModal('trickPromptModal'));
+  document.getElementById('trickPromptModalClose').addEventListener('click', () => closeModal('trickPromptModal'));
+  document.getElementById('trickPromptModal').addEventListener('click', e => { if (e.target.id === 'trickPromptModal') closeModal('trickPromptModal'); });
 });
 
 </script>

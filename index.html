@@ -978,9 +978,11 @@ function renderBooks() {
 function openAddCLForBook(work, author) {
   const fence = '```';
   const prompt = [
-    `你是一位推理小说专家。请为《${work}》${author ? '（作者：'+author+'）' : ''}生成推理逻辑条目。`,
+    `你是一位推理小说专家，拥有网络搜索能力。请先搜索《${work}》获取准确信息，再生成推理逻辑条目，不要编造。`,
     '',
     '推理逻辑记录侦探的核心推理链条，以及故事层面谜题（身份、性别、家族关系等）的揭露过程。',
+    '',
+    '重要：如果你对本书的具体推理细节没有把握，请先搜索确认，不要编造内容。宁可条目少而精，不要用通用套路填充。',
     '',
     '要求：',
     '- 每步必须是推理跳跃的依据，格式：证据/前提 → 结论或排除',
@@ -1197,7 +1199,7 @@ async function delEntry(id) {
 // ══════════════════════════════════════════════
 function buildPrompt(bookName, author) {
   const authorLine = author ? `作者：${author}` : '';
-  return `你是一位推理小说专家。请分析以下书目，列出其中所有值得记录的：
+  return `你是一位推理小说专家，拥有网络搜索能力。请先搜索该书获取准确信息，再分析列出其中所有值得记录的，不要编造：
 1. 诡计（具体的作案手法）
 2. 概念（推理类型、理论框架）
 3. 叙述手法（作者在叙述层面的技巧）
@@ -1244,7 +1246,7 @@ function buildFillPrompt(title, cat) {
     : isCL
     ? '\n\n注意：推理逻辑记录推理链条步骤，steps字段每行一步，最后一行为结论。'
     : '';
-  return '你是一位推理小说专家。请分析以下推理' + catLabel + '，以 JSON 格式返回详细信息（直接输出 JSON，不要加任何说明文字）：\n\n条目名称：「' + title + '」\n类型：' + catLabel + typeNote + '\n\n' + fence + 'json\n{\n  "summary": "一两句话概括核心描述",\n  "detail": "深入分析",' + howWhy + '\n}\n' + fence;
+  return '你是一位推理小说专家，拥有网络搜索能力。如对该条目细节没有把握，请先搜索确认，不要编造。请分析以下推理' + catLabel + '，以 JSON 格式返回详细信息（直接输出 JSON，不要加任何说明文字）：\n\n条目名称：「' + title + '」\n类型：' + catLabel + typeNote + '\n\n' + fence + 'json\n{\n  "summary": "一两句话概括核心描述",\n  "detail": "深入分析",' + howWhy + '\n}\n' + fence;
 }
 
 // Wire up fill-prompt button
@@ -1866,7 +1868,7 @@ buildPrompt = function(bookName, author) {
   const authorLine = author ? '作者：'+author : '';
   const fence = '```';
 
-  return `你是一位推理小说专家。请分析《${bookName}》${author ? '（作者：'+author+'）' : ''}，提取值得记录的条目。
+  return `你是一位推理小说专家，拥有网络搜索能力。请先搜索《${bookName}》${author ? '（作者：'+author+'）' : ''}获取准确信息，再提取值得记录的条目，不要编造。
 
 【分类定义】
 trick（诡计）：故事中设置的欺骗机制，包括作案手法（凶手如何犯罪）和故事层面的身份、性别、家族关系等隐藏真相的诡计。必须可跨作品复用。
@@ -2368,7 +2370,7 @@ function openAddTrickForBook(work, author) {
   ].join('\n');
 
   const prompt = [
-    `你是一位推理小说专家。请为《${work}》${author ? '（作者：'+author+'）' : ''}增补条目。`,
+    `你是一位推理小说专家，拥有网络搜索能力。请先搜索《${work}》获取准确信息，再增补条目，不要编造。`,
     '',
     '【已有条目，不要重复】',
     existing || '（暂无）',

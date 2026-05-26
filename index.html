@@ -1573,7 +1573,6 @@ document.querySelectorAll('.main-tab').forEach(tab => {
     if (tab.dataset.panel==='books')            renderBooks();
     if (tab.dataset.panel==='authors')          renderAuthors();
     if (tab.dataset.panel==='detectives')       renderDetectives();
-    if (tab.dataset.panel==='detective-moves')  renderDetectiveMoves();
     renderBooks();
   });
 });
@@ -1880,10 +1879,11 @@ detective-move（侦探做法）：侦探为达到特定目的而采取的非常
 凶手做的 → trick / 侦探做的 → detective-move / 作者做的 → narrative / 已命名理论 → concept
 
 【硬性规则】
-1. 一个条目只表达一个独立概念，不合并两件不同的事
+1. 一个条目只表达一个独立概念；可合并的不拆分
 2. title 优先使用推理界已有术语；无现成术语时用最精炼的描述，不堆砌修饰语
 3. title 和 summary 不出现具体人名、书名（只放 example）；人名统一用中文
 4. 作者特质和侦探特质只写在 author/detective 区块
+5. how/howShort/why/whyShort/keywords 仅 trick 填写（其余 []）；howShort/whyShort 为 2-5 字缩略标签；detectiveName 仅 detective-move 填写（其余空字符串）
 
 请输出以下三个 JSON 区块，直接输出不要任何说明：
 
@@ -2355,15 +2355,15 @@ function openAddTrickForBook(work, author) {
     '  {',
     '    "cat": "trick/concept/narrative/detective-move",',
     '    "title": "简洁名称",',
-    '    "how": [],',
-    '    "howShort": [],',
-    '    "why": [],',
-    '    "whyShort": [],',
+    '    "how": ["实现手法完整描述（仅 trick）"],',
+    '    "howShort": ["手法缩略词（仅 trick）"],',
+    '    "why": ["目的完整描述（仅 trick）"],',
+    '    "whyShort": ["目的缩略词（仅 trick）"],',
     '    "summary": "",',
     '    "detail": "",',
     '    "example": "",',
-    '    "keywords": [],',
-    '    "detectiveName": ""',
+    '    "keywords": ["关键词（仅 trick）"],',
+    '    "detectiveName": "侦探中文名（仅 detective-move）"',
     '  }',
     ']',
     fence
@@ -2382,12 +2382,12 @@ function openAddTrickForBook(work, author) {
     'detective-move（侦探做法）：侦探为达目的采取的非常规行动。',
     '',
     '【硬性规则】',
-    '1. 一个条目只表达一个独立概念',
-    '2. title 优先使用已有术语；无则精炼描述',
+    '1. 一个条目只表达一个独立概念；可合并的不拆分',
+    '2. title 优先使用推理界已有术语；无则用最精炼的描述，不堆砌修饰语',
     '3. title 和 summary 不含具体人名书名（放 example）；人名用中文',
     '4. 作者特质和侦探特质不写入条目',
+    '5. how/howShort/why/whyShort/keywords 仅 trick 填写（其余 []）；howShort/whyShort 为2-5字缩略标签；detectiveName 仅 detective-move 填写（其余空字符串）',
     '',
-    '字段说明：how/howShort/why/whyShort/keywords 仅 trick 类填写，其余留空数组 []；detectiveName 仅 detective-move 填写，其余留空字符串。',
     '请直接输出 JSON 数组，不要任何说明文字，不要其他区块：',
     '',
     jsonTemplate
@@ -2407,7 +2407,6 @@ function openAddTrickForBook(work, author) {
   openModal('trickPromptModal');
 }
 
-
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnCopyTrickPrompt').addEventListener('click', () => {
     navigator.clipboard.writeText(document.getElementById('trickPromptBox').textContent).then(() => {
@@ -2423,8 +2422,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const work = document.getElementById('trickPromptModal').dataset.work || '';
     const author = document.getElementById('trickPromptModal').dataset.author || '';
 
-    // Extract entries block (labeled or plain)
-    const fenceMatch = raw.match(/(?:```|~~~)json\s+entries\s*([\s\S]*?)(?:```|~~~)/i);
+    const fenceMatch = raw.match(/(?:\`\`\`|~~~)json\s+entries\s*([\s\S]*?)(?:\`\`\`|~~~)/i);
     let arr = fenceMatch ? parseJson(fenceMatch[1].trim()) : parseJson(raw);
     if (arr && !Array.isArray(arr)) arr = [arr];
     if (!arr || !arr.length) {
@@ -2470,7 +2468,6 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnConfirmTrickImport').style.display = '';
     document.getElementById('btnConfirmTrickImport').dataset.work = work;
     document.getElementById('btnConfirmTrickImport').dataset.author = author;
-    // Store items for confirm step
     window._pendingTrickItems = items;
   });
 
@@ -2503,6 +2500,72 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('trickPromptModalClose').addEventListener('click', () => closeModal('trickPromptModal'));
   document.getElementById('trickPromptModal').addEventListener('click', e => { if (e.target.id === 'trickPromptModal') closeModal('trickPromptModal'); });
 });
+
+// ── Case Logic Prompt Modal ──
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('btnCopyCLPrompt').addEventListener('click', () => {
+    navigator.clipboard.writeText(document.getElementById('clPromptBox').textContent).then(() => {
+      const el = document.getElementById('clPromptCopyConfirm');
+      el.textContent = '✓ 已复制'; el.style.opacity = '1';
+      setTimeout(() => { el.style.opacity = '0'; }, 2000);
+    });
+  });
+
+  document.getElementById('btnParseCLReply').addEventListener('click', async () => {
+    const raw = document.getElementById('clPromptPasteArea').value.trim();
+    const errEl = document.getElementById('clPromptParseErr');
+    const work = document.getElementById('clPromptModal').dataset.work || '';
+
+    const fence = /(?:\`\`\`|~~~)json\s+case-logic\s*([\s\S]*?)(?:\`\`\`|~~~)/i;
+    const m = raw.match(fence);
+    const content = m ? parseJson(m[1].trim()) : parseJson(raw);
+    const items = Array.isArray(content) ? content.filter(c => c.steps) : [];
+
+    if (!items.length) {
+      errEl.textContent = '✕ 未找到可解析的推理逻辑'; errEl.style.display = 'block'; return;
+    }
+    errEl.style.display = 'none';
+
+    const preview = document.getElementById('clPromptPreview');
+    preview.innerHTML = items.map((c,i) => `
+      <div style="margin-bottom:8px;padding:10px 12px;background:var(--paper-dark);border:1.5px solid var(--paper-darker)">
+        <div style="font-family:'Special Elite',monospace;font-size:9px;color:var(--ink-lighter);letter-spacing:2px;margin-bottom:4px">CASE LOGIC</div>
+        <div style="font-weight:700;margin-bottom:4px">${esc(c.case_||'推理逻辑')}</div>
+        <div style="font-size:12px;color:var(--ink-faded)">${esc((c.steps||'').split('\n')[0])}${(c.steps||'').includes('\n')?'…':''}</div>
+        <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;cursor:pointer">
+          <input type="checkbox" class="cl-prompt-check" data-idx="${i}" checked /> 导入
+        </label>
+      </div>`).join('');
+    preview.dataset.items = JSON.stringify(items);
+    preview.style.display = 'block';
+
+    const btn = document.getElementById('btnParseCLReply');
+    btn.textContent = '确认导入';
+    btn.onclick = async () => {
+      const selected = items.filter((_,i) => {
+        const cb = document.querySelector(`.cl-prompt-check[data-idx="${i}"]`);
+        return cb && cb.checked;
+      });
+      btn.disabled = true; btn.textContent = '保存中…';
+      caseLogics.unshift(...selected.map(c => ({
+        id: nextCLId++, work, case_: (c.case_||'').trim(), steps: (c.steps||'').trim(), notes: '', date: today()
+      })));
+      const ok = await ghSave();
+      btn.disabled = false;
+      const msg = document.getElementById('clPromptSaveMsg');
+      msg.style.color = ok ? '#6aaa5a' : '#c44';
+      msg.textContent = ok ? `✓ 已导入 ${selected.length} 条` : '⚠ 本地缓存';
+      renderBooks();
+      if (ok) setTimeout(() => { closeModal('clPromptModal'); btn.textContent = '解析结果'; btn.onclick = null; }, 800);
+    };
+  });
+
+  document.getElementById('btnCLPromptCancel').addEventListener('click', () => closeModal('clPromptModal'));
+  document.getElementById('clPromptModalClose').addEventListener('click', () => closeModal('clPromptModal'));
+  document.getElementById('clPromptModal').addEventListener('click', e => { if (e.target.id === 'clPromptModal') closeModal('clPromptModal'); });
+});
+
+
 
 </script>
 

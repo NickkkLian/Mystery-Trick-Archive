@@ -1494,27 +1494,12 @@ document.getElementById('btnDoImport').addEventListener('click', async () => {
     else detectives.push({id:nextDetectiveId++, name, authorName:aName, trait: d.trait ? '【'+bk+'】'+d.trait : '', notes:''});
   });
 
+
   // Clean up
   const prev = document.getElementById('authorDetPreview');
   if (prev) prev.remove();
 
-  // Import case logics
-  const newCLs = [];
-  (window._pendingCaseLogics||[]).forEach((c,i) => {
-    const cb = document.querySelector('.cl-import-check[data-idx="'+i+'"]');
-    if (!cb || !cb.checked) return;
-    newCLs.push({
-      id: nextCLId++,
-      work: window._pendingBookName || '',
-      case_: (c.case_||'').trim(),
-      steps: (c.steps||'').trim(),
-      notes: '',
-      date: today(),
-    });
-  });
-  caseLogics.unshift(...newCLs);
-
-  window._pendingAuthor=null; window._pendingDetectives=[]; window._pendingCaseLogics=[];
+  window._pendingAuthor=null; window._pendingDetectives=[];
 
   // Single save for everything
   const ok = await ghSave();
@@ -1935,23 +1920,7 @@ ${fence}json detective
 ]
 ${fence}
 
-${fence}json case-logic
-[
-  {
-    "case_": "案件或谜题名称",
-    "steps": "每步一行，最后一行为结论"
-  }
-]
-${fence}
-
-没有固定侦探则 detective 输出空数组 []。没有值得记录的推理逻辑则 case-logic 输出空数组 []。
-
-推理逻辑要求：
-- case_ 包括具体案件，也包括故事层面的身份、性别、家族关系等谜题
-- steps 每步格式：证据/前提 → 结论或排除
-- 粒度要细，具体物证细节也应单独列步，不要笼统概括
-- 不复述情节，抓住逻辑跳跃
-- 同一案件若有多条相对独立的推理子链，拆成多条`;
+没有固定侦探则 detective 输出空数组 []。`;
 };
 
 // Parse the three-block reply
@@ -1994,7 +1963,6 @@ document.getElementById('btnParseReply').addEventListener('click', function() {
   // Store parsed author/detectives for later import
   window._pendingAuthor = parsed.author;
   window._pendingDetectives = Array.isArray(parsed.detectives) ? parsed.detectives : [];
-  window._pendingCaseLogics = Array.isArray(parsed.caseLogics) ? parsed.caseLogics.filter(c=>c.steps) : [];
   window._pendingBookName = bookName;
   window._pendingAuthorName = authorName || (parsed.author && parsed.author.name) || '';
 
@@ -2036,17 +2004,8 @@ document.getElementById('btnParseReply').addEventListener('click', function() {
       </label>
     </div>`).join('');
 
-  const clPreviewHtml = (window._pendingCaseLogics||[]).map((c,i) => `
-    <div style="margin-top:8px;padding:10px 12px;background:var(--paper-dark);border:1.5px solid var(--paper-darker)">
-      <div style="font-family:'Special Elite',monospace;font-size:9px;letter-spacing:2px;color:var(--ink-lighter);margin-bottom:5px">CASE LOGIC · 推理逻辑</div>
-      <div style="font-weight:700;color:var(--ink);margin-bottom:3px">${esc(c.case_||'推理逻辑')}</div>
-      <div style="font-size:12px;color:var(--ink-faded)">${esc((c.steps||'').split('\n')[0])}${(c.steps||'').includes('\n')?'…':''}</div>
-      <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;cursor:pointer">
-        <input type="checkbox" class="cl-import-check" data-idx="${i}" checked /> 导入此推理逻辑
-      </label>
-    </div>`).join('');
 
-  previewList.insertAdjacentHTML('afterend', '<div id="authorDetPreview">'+authorPreviewHtml+detPreviewHtml+clPreviewHtml+'</div>');
+  previewList.insertAdjacentHTML('afterend', '<div id="authorDetPreview">'+authorPreviewHtml+detPreviewHtml+'</div>');
 
   showImportStep(2);
 });

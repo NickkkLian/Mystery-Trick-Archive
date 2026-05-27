@@ -1699,8 +1699,12 @@ function renderDetectives() {
   empty.style.display='none';
 
   list.innerHTML = detectives.map((d,di) => {
+    // Find books where this detective actually appears (via detectiveName field)
     const books = [...new Set(
-      entries.flatMap(e=>(e.sources||[]).filter(s=>s.author===d.authorName).map(s=>s.work)).filter(Boolean)
+      entries.filter(e => {
+        const names = Array.isArray(e.detectiveName) ? e.detectiveName : (e.detectiveName ? [e.detectiveName] : []);
+        return names.includes(d.name);
+      }).flatMap(e => (e.sources||[]).map(s=>s.work)).filter(Boolean)
     )];
     const bookBadges = books.map(b=>'<span class="coll-badge cb-book">《'+esc(b)+'》</span>').join('');
     const authorBadge = d.authorName ? '<span class="coll-badge" style="color:var(--ink-lighter);border-color:var(--ink-lighter);background:rgba(0,0,0,0.05)">'+esc(d.authorName)+'</span>' : '';

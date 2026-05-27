@@ -563,6 +563,7 @@
   <div class="coll-wrap">
     <div class="coll-toolbar">
       <span class="coll-title" id="detectivesTitle">DETECTIVES · 侦探集</span>
+      <button class="btn-primary" id="btnVerifyRelations" style="font-size:12px;padding:6px 12px">🔍 校对关系</button>
     </div>
     <div class="coll-list" id="detectiveList"></div>
     <div class="empty-state" id="detectivesEmpty" style="display:none;margin-top:32px">— 暂无侦探记录 —</div>
@@ -744,6 +745,32 @@
         <button class="btn-submit" id="btnConfirmTrickImport" style="display:none">确认导入</button>
         <button class="btn-cancel" id="btnTrickPromptCancel">取消</button>
         <span class="save-msg" id="trickPromptSaveMsg"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ VERIFY RELATIONS MODAL ══ -->
+<div class="modal-overlay" id="verifyModal">
+  <div class="modal">
+    <div class="modal-header"><h2>校对作者 · 侦探 · 作品关系</h2><button class="modal-close" id="verifyModalClose">✕</button></div>
+    <div class="modal-body">
+      <p class="f-label" style="margin-bottom:6px">把下面这段 prompt 复制到 Claude 新对话：</p>
+      <div class="prompt-box" id="verifyPromptBox" style="max-height:200px;font-size:11px"></div>
+      <div style="display:flex;gap:8px;align-items:center;margin:8px 0 16px">
+        <button class="btn-copy" id="btnCopyVerifyPrompt">复制 Prompt</button>
+        <span id="verifyCopyConfirm" style="font-family:'Special Elite',monospace;font-size:10px;color:#6aaa5a;opacity:0;transition:opacity .3s"></span>
+      </div>
+      <hr class="f-hr" />
+      <p class="f-label" style="margin-bottom:6px">把 Claude 的回复粘贴到这里：</p>
+      <textarea class="paste-area" id="verifyPasteArea" style="min-height:120px" placeholder="粘贴 Claude 的完整回复…"></textarea>
+      <div class="parse-err" id="verifyParseErr" style="display:none;margin-top:6px"></div>
+      <div id="verifyPreview" style="display:none;margin-top:12px"></div>
+      <div class="f-actions" style="margin-top:10px">
+        <button class="btn-submit" id="btnParseVerify">解析并预览</button>
+        <button class="btn-submit" id="btnApplyVerify" style="display:none">确认应用</button>
+        <button class="btn-cancel" id="btnVerifyCancel">取消</button>
+        <span class="save-msg" id="verifySaveMsg"></span>
       </div>
     </div>
   </div>
@@ -1699,19 +1726,12 @@ function renderDetectives() {
   empty.style.display='none';
 
   list.innerHTML = detectives.map((d,di) => {
-    // Find books where this detective appears:
-    // 1. Entries that explicitly list this detective in detectiveName
-    // 2. Fallback: entries whose source author matches (for older data without detectiveName)
-    const booksByName = new Set(
+    const books = [...new Set(
       entries.filter(e => {
         const names = Array.isArray(e.detectiveName) ? e.detectiveName : (e.detectiveName ? [e.detectiveName] : []);
         return names.includes(d.name);
       }).flatMap(e => (e.sources||[]).map(s=>s.work)).filter(Boolean)
-    );
-    const booksByAuthor = d.authorName ? new Set(
-      entries.flatMap(e=>(e.sources||[]).filter(s=>s.author===d.authorName).map(s=>s.work)).filter(Boolean)
-    ) : new Set();
-    const books = [...new Set([...booksByName, ...booksByAuthor])];
+    )];
     const bookBadges = books.map(b=>'<span class="coll-badge cb-book">《'+esc(b)+'》</span>').join('');
     const authorBadge = d.authorName ? '<span class="coll-badge" style="color:var(--ink-lighter);border-color:var(--ink-lighter);background:rgba(0,0,0,0.05)">'+esc(d.authorName)+'</span>' : '';
     const bookLinks = books.length ? '<div class="coll-section-label">出现作品（书库）</div><div class="coll-links">'+
@@ -2579,6 +2599,123 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 
+// ══════════════════════════════════════════════
+//  VERIFY RELATIONS
+// ══════════════════════════════════════════════
+function buildVerifyPrompt() {
+  const books = [...new Set(entries.flatMap(e=>(e.sources||[]).map(s=>s.work).filter(Boolean)))].sort();
+  const authorList = authors.map(a => `- ${a.name}`).join('\n') || '（暂无）';
+  const detectiveList = detectives.map(d => `- ${d.name}（所属作者：${d.authorName||'未知'}）`).join('\n') || '（暂无）';
+  const bookList = books.map(b => {
+    const auth = [...new Set(entries.flatMap(e=>(e.sources||[]).filter(s=>s.work===b).map(s=>s.author).filter(Boolean)))].join('、');
+    return `- 《${b}》${auth ? '（'+auth+'）' : ''}`;
+  }).join('\n') || '（暂无）';
+
+  return `你是一位推理小说专家，拥有网络搜索能力。请根据以下数据，校对并纠正作者、侦探、作品之间的关系。
+
+【当前作者列表】
+${authorList}
+
+【当前侦探列表】
+${detectiveList}
+
+【当前书库（书名及已知作者）】
+${bookList}
+
+请搜索确认后，输出纠正后的关系数据。直接输出 JSON，不要任何说明：
+
+\`\`\`json
+[
+  {
+    "detectiveName": "侦探名",
+    "authorName": "正确的所属作者名",
+    "appearsIn": ["出现过的书名1", "出现过的书名2"]
+  }
+]
+\`\`\`
+
+只列出书库中实际存在的书。如果某侦探没有出现在书库里的任何书，appearsIn 为空数组。`;
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('btnVerifyRelations').addEventListener('click', () => {
+    document.getElementById('verifyPromptBox').textContent = buildVerifyPrompt();
+    document.getElementById('verifyPasteArea').value = '';
+    document.getElementById('verifyParseErr').style.display = 'none';
+    document.getElementById('verifyPreview').style.display = 'none';
+    document.getElementById('verifySaveMsg').textContent = '';
+    document.getElementById('btnParseVerify').style.display = '';
+    document.getElementById('btnApplyVerify').style.display = 'none';
+    openModal('verifyModal');
+  });
+
+  document.getElementById('btnCopyVerifyPrompt').addEventListener('click', () => {
+    navigator.clipboard.writeText(document.getElementById('verifyPromptBox').textContent).then(() => {
+      const el = document.getElementById('verifyCopyConfirm');
+      el.textContent = '✓ 已复制'; el.style.opacity = '1';
+      setTimeout(() => { el.style.opacity = '0'; }, 2000);
+    });
+  });
+
+  document.getElementById('btnParseVerify').addEventListener('click', () => {
+    const raw = document.getElementById('verifyPasteArea').value.trim();
+    const errEl = document.getElementById('verifyParseErr');
+    let arr = parseJson(raw);
+    if (!Array.isArray(arr) || !arr.length) {
+      errEl.textContent = '✕ 未找到可解析的 JSON'; errEl.style.display = 'block'; return;
+    }
+    errEl.style.display = 'none';
+
+    // Store for apply step
+    window._pendingVerify = arr;
+
+    // Preview
+    const preview = document.getElementById('verifyPreview');
+    preview.innerHTML = '<div style="font-family:\'Special Elite\',monospace;font-size:9px;letter-spacing:2px;color:var(--ink-lighter);margin-bottom:8px">预览更新内容</div>' +
+      arr.map(item => {
+        const current = detectives.find(d => d.name === item.detectiveName);
+        const changes = [];
+        if (current && current.authorName !== item.authorName) changes.push(`所属作者：${current.authorName||'空'} → ${item.authorName}`);
+        if (!current) changes.push('新侦探记录');
+        const books = (item.appearsIn||[]).join('、') || '（无）';
+        return `<div style="padding:8px 12px;margin-bottom:6px;background:var(--paper-dark);border:1.5px solid var(--paper-darker)">
+          <div style="font-weight:700;margin-bottom:4px">${esc(item.detectiveName)}</div>
+          ${changes.length ? `<div style="font-size:12px;color:var(--gold)">${changes.join('；')}</div>` : '<div style="font-size:12px;color:var(--ink-lighter)">所属作者无变化</div>'}
+          <div style="font-size:12px;color:var(--ink-faded);margin-top:2px">出现作品：${esc(books)}</div>
+        </div>`;
+      }).join('');
+    preview.style.display = 'block';
+    document.getElementById('btnParseVerify').style.display = 'none';
+    document.getElementById('btnApplyVerify').style.display = '';
+  });
+
+  document.getElementById('btnApplyVerify').addEventListener('click', async () => {
+    const arr = window._pendingVerify || [];
+    const btn = document.getElementById('btnApplyVerify');
+    btn.disabled = true; btn.textContent = '保存中…';
+
+    arr.forEach(item => {
+      const det = detectives.find(d => d.name === item.detectiveName);
+      if (det) {
+        if (item.authorName) det.authorName = item.authorName;
+        // Update detectiveName in entries based on appearsIn
+        // (we don't auto-edit entries here, just update the detective record)
+      }
+    });
+
+    const ok = await ghSave();
+    btn.disabled = false; btn.textContent = '确认应用';
+    const msg = document.getElementById('verifySaveMsg');
+    msg.style.color = ok ? '#6aaa5a' : '#c44';
+    msg.textContent = ok ? '✓ 已保存' : '⚠ 本地缓存';
+    renderDetectives(); renderAuthors();
+    if (ok) setTimeout(() => closeModal('verifyModal'), 800);
+  });
+
+  document.getElementById('btnVerifyCancel').addEventListener('click', () => closeModal('verifyModal'));
+  document.getElementById('verifyModalClose').addEventListener('click', () => closeModal('verifyModal'));
+  document.getElementById('verifyModal').addEventListener('click', e => { if (e.target.id === 'verifyModal') closeModal('verifyModal'); });
+});
 
 </script>
 

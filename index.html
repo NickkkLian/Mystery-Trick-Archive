@@ -1699,13 +1699,19 @@ function renderDetectives() {
   empty.style.display='none';
 
   list.innerHTML = detectives.map((d,di) => {
-    // Find books where this detective actually appears (via detectiveName field)
-    const books = [...new Set(
+    // Find books where this detective appears:
+    // 1. Entries that explicitly list this detective in detectiveName
+    // 2. Fallback: entries whose source author matches (for older data without detectiveName)
+    const booksByName = new Set(
       entries.filter(e => {
         const names = Array.isArray(e.detectiveName) ? e.detectiveName : (e.detectiveName ? [e.detectiveName] : []);
         return names.includes(d.name);
       }).flatMap(e => (e.sources||[]).map(s=>s.work)).filter(Boolean)
-    )];
+    );
+    const booksByAuthor = d.authorName ? new Set(
+      entries.flatMap(e=>(e.sources||[]).filter(s=>s.author===d.authorName).map(s=>s.work)).filter(Boolean)
+    ) : new Set();
+    const books = [...new Set([...booksByName, ...booksByAuthor])];
     const bookBadges = books.map(b=>'<span class="coll-badge cb-book">《'+esc(b)+'》</span>').join('');
     const authorBadge = d.authorName ? '<span class="coll-badge" style="color:var(--ink-lighter);border-color:var(--ink-lighter);background:rgba(0,0,0,0.05)">'+esc(d.authorName)+'</span>' : '';
     const bookLinks = books.length ? '<div class="coll-section-label">出现作品（书库）</div><div class="coll-links">'+

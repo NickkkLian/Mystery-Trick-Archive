@@ -442,9 +442,10 @@
       <hr class="f-hr" />
       <div id="fDetectiveSection" style="display:none">
         <div class="f-group">
-          <label class="f-label">关联侦探（从侦探集选）</label>
-          <input class="f-input" id="fDetectiveName" type="text" placeholder="侦探名…" list="fDetectiveDatalist" />
+          <label class="f-label">关联侦探（可多个）</label>
+          <div class="tag-input-wrap" id="fDetectiveNameWrap"></div>
           <datalist id="fDetectiveDatalist"></datalist>
+          <p class="f-hint">回车添加，从侦探集中选择</p>
         </div>
       </div>
 
@@ -764,7 +765,7 @@ let detectiveMoves = [], caseLogics = [], nextDMId = 1, nextCLId = 1;
 let editingDMId = null, editingCLId = null;
 let filterCat = 'all', filterHow = '', filterWhy = '', searchQuery = '';
 let editingId = null;
-let formHowTags = [], formWhyTags = [], formKwTags = [];
+let formHowTags = [], formWhyTags = [], formKwTags = [], formDetectiveNameTags = [];
 let formHowShortTags = [], formWhyShortTags = [];
 let parsedImports = []; // entries parsed from Claude reply
 
@@ -889,7 +890,7 @@ function renderTricks() {
       <span class="card-cat ${CAT_CLASS[e.cat]||'cat-trick'}">${CAT_LABEL[e.cat]||esc(e.cat)}</span>
       <div class="card-title">${esc(e.title)}</div>
       ${srcLine?`<div class="card-sources">${srcLine}</div>`:''}
-      ${e.cat==='detective-move'&&e.detectiveName?`<div class="card-sources" style="color:var(--green)">侦探：${esc(e.detectiveName)}</div>`:''}
+      ${e.cat==='detective-move'&&(e.detectiveName||[]).length?`<div class="card-sources" style="color:var(--green)">侦探：${esc((Array.isArray(e.detectiveName)?e.detectiveName:[e.detectiveName]).filter(Boolean).join('、'))}</div>`:''}
       <div class="card-summary">${esc(e.summary)}</div>
       <div class="card-meta">
         <div class="card-pills">${e.cat==='trick'?(e.keywords||[]).slice(0,3).map(k=>`<span class="pill">${esc(k)}</span>`).join(''):''}</div>
@@ -1043,7 +1044,7 @@ function openDetail(id) {
   document.getElementById('detailBody').innerHTML = `
     <div class="d-cat"><span class="card-cat ${CAT_CLASS[e.cat]||'cat-trick'}">${CAT_LABEL[e.cat]||esc(e.cat)}</span></div>
     <div class="d-title">${esc(e.title)}</div>
-    ${e.cat==='detective-move'&&e.detectiveName?`<div class="d-source-line">侦探：${esc(e.detectiveName)}</div>`:''}
+    ${e.cat==='detective-move'&&(e.detectiveName||[]).length?`<div class="d-source-line">侦探：${esc((Array.isArray(e.detectiveName)?e.detectiveName:[e.detectiveName]).filter(Boolean).join('、'))}</div>`:''}
     ${hPills||wPills?`<div class="d-pills">${hPills}${wPills}</div>`:''}
     <div class="d-hr"></div>
     <div class="d-label">简述</div><div class="d-text">${esc(e.summary)}</div>
@@ -1118,17 +1119,18 @@ function updateHowWhyVisibility() {
   document.getElementById('howWhySection').style.display     = isTrick ? '' : 'none';
   document.getElementById('kwSection').style.display          = isTrick ? '' : 'none';
   document.getElementById('fDetectiveSection').style.display  = isDM ? '' : 'none';
-  // populate detective datalist
   if (isDM) {
     document.getElementById('fDetectiveDatalist').innerHTML =
       detectives.map(d=>`<option value="${esc(d.name)}">`).join('');
+    makeTagInput('fDetectiveNameWrap', formDetectiveNameTags);
   }
 }
 
 function openAdd() {
   editingId = null;
   document.getElementById('formTitle').textContent = 'NEW ENTRY · 新增条目';
-  ['fTitle','fSummary','fDetail','fNotes','fDetectiveName'].forEach(id=>document.getElementById(id).value='');
+  ['fTitle','fSummary','fDetail','fNotes'].forEach(id=>document.getElementById(id).value='');
+  formDetectiveNameTags=[];
   document.getElementById('fCat').value = 'trick';
   formHowTags=[]; formWhyTags=[]; formKwTags=[]; formSources=[];
   formHowShortTags=[]; formWhyShortTags=[];
@@ -1151,7 +1153,8 @@ function openEdit(id) {
   document.getElementById('fSummary').value = e.summary;
   document.getElementById('fDetail').value  = e.detail||'';
   document.getElementById('fNotes').value   = e.notes||'';
-  document.getElementById('fDetectiveName').value = e.detectiveName||'';
+  formDetectiveNameTags = Array.isArray(e.detectiveName) ? [...e.detectiveName] : (e.detectiveName ? [e.detectiveName] : []);
+  makeTagInput('fDetectiveNameWrap', formDetectiveNameTags);
   formHowTags=[...(e.how||[])]; formWhyTags=[...(e.why||[])]; formKwTags=[...(e.keywords||[])];
   formHowShortTags=[...(e.howShort||[])]; formWhyShortTags=[...(e.whyShort||[])];
   formSources = (e.sources||[]).map(s=>({work:s.work||'',author:s.author||'',example:s.example||''}));
@@ -1178,7 +1181,7 @@ async function submitForm() {
     sources: formSources.filter(s=>s.work||s.example).map(s=>({work:s.work,author:s.author,example:s.example})),
     keywords: cat==='trick'?[...formKwTags]:[],
     notes: document.getElementById('fNotes').value.trim(),
-    detectiveName: cat==='detective-move' ? document.getElementById('fDetectiveName').value.trim() : '',
+    detectiveName: cat==='detective-move' ? [...formDetectiveNameTags] : [],
     date: editingId?(entries.find(e=>e.id===editingId)||{}).date||today():today(),
   };
   if (editingId) { const i=entries.findIndex(e=>e.id===editingId); entries[i]=entry; }
@@ -1238,7 +1241,7 @@ function buildFillPrompt(title, cat) {
   const isCL = cat === 'case-logic';
   const howWhy = isTrick
     ? '\n  "how": ["实现手法完整描述"],\n  "howShort": ["手法缩略词，2-5字"],\n  "why": ["目的完整描述"],\n  "whyShort": ["目的缩略词，2-5字"],\n  "keywords": ["关键词1", "关键词2"],'
-    : isDM ? '\n  "detectiveName": "侦探名",'
+    : isDM ? '\n  "detectiveName": ["侦探中文名"],'
     : isCL ? '\n  "steps": "每行一步的推理链条，最后一行为结论",'
     : '';
   const typeNote = isDM
@@ -1883,7 +1886,7 @@ detective-move（侦探做法）：侦探为达到特定目的而采取的非常
 2. title 优先使用推理界已有术语；无现成术语时用最精炼的描述，不堆砌修饰语
 3. title 和 summary 不出现具体人名、书名（只放 example）；人名统一用中文
 4. 作者特质和侦探特质只写在 author/detective 区块
-5. how/howShort/why/whyShort/keywords 仅 trick 填写（其余 []）；howShort/whyShort 为 2-5 字缩略标签；detectiveName 仅 detective-move 填写（其余空字符串）
+5. how/howShort/why/whyShort/keywords 仅 trick 填写（其余 []）；howShort/whyShort 为 2-5 字缩略标签；detectiveName 仅 detective-move 填写（数组，其余 []）
 
 请输出以下三个 JSON 区块，直接输出不要任何说明：
 
@@ -1900,7 +1903,7 @@ ${fence}json entries
     "detail": "深入分析",
     "example": "书中具体运用，可含人名案件",
     "keywords": ["关键词（仅 trick，其余 []）"],
-    "detectiveName": "侦探中文名（仅 detective-move，其余空字符串）",
+    "detectiveName": ["侦探中文名（仅 detective-move，其余 []）"],
   }
 ]
 ${fence}
@@ -1978,7 +1981,7 @@ document.getElementById('btnParseReply').addEventListener('click', function() {
     summary:  (p.summary||'').trim(),
     detail:   (p.detail||'').trim(),
     keywords: Array.isArray(p.keywords) ? p.keywords.map(s=>s.trim()).filter(Boolean) : [],
-    detectiveName: (p.detectiveName||'').trim(),
+    detectiveName: Array.isArray(p.detectiveName) ? p.detectiveName.map(s=>s.trim()).filter(Boolean) : (p.detectiveName ? [p.detectiveName.trim()] : []),
     sources:  [{work:bookName, author:authorName||(parsed.author&&parsed.author.name)||'', example:(p.example||'').trim()}],
   })).filter(p=>p.title&&p.summary);
 
@@ -2363,7 +2366,7 @@ function openAddTrickForBook(work, author) {
     '    "detail": "",',
     '    "example": "",',
     '    "keywords": ["关键词（仅 trick）"],',
-    '    "detectiveName": "侦探中文名（仅 detective-move）"',
+    '    "detectiveName": ["侦探中文名（仅 detective-move，其余 []）"]',
     '  }',
     ']',
     fence
@@ -2386,7 +2389,7 @@ function openAddTrickForBook(work, author) {
     '2. title 优先使用推理界已有术语；无则用最精炼的描述，不堆砌修饰语',
     '3. title 和 summary 不含具体人名书名（放 example）；人名用中文',
     '4. 作者特质和侦探特质不写入条目',
-    '5. how/howShort/why/whyShort/keywords 仅 trick 填写（其余 []）；howShort/whyShort 为2-5字缩略标签；detectiveName 仅 detective-move 填写（其余空字符串）',
+    '5. how/howShort/why/whyShort/keywords 仅 trick 填写（其余 []）；howShort/whyShort 为2-5字缩略标签；detectiveName 仅 detective-move 填写（数组，其余 []）',
     '',
     '请直接输出 JSON 数组，不要任何说明文字，不要其他区块：',
     '',
@@ -2440,7 +2443,7 @@ window.addEventListener('DOMContentLoaded', () => {
       summary:  (p.summary||'').trim(),
       detail:   (p.detail||'').trim(),
       keywords: Array.isArray(p.keywords) ? p.keywords.map(s=>s.trim()).filter(Boolean) : [],
-      detectiveName: (p.detectiveName||'').trim(),
+      detectiveName: Array.isArray(p.detectiveName) ? p.detectiveName.map(s=>s.trim()).filter(Boolean) : (p.detectiveName ? [p.detectiveName.trim()] : []),
       steps: '',
       sources: [{work, author, example: (p.example||'').trim()}],
     })).filter(p => p.title && p.summary);

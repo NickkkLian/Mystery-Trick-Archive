@@ -1522,8 +1522,11 @@ document.getElementById('btnDoImport').addEventListener('click', async () => {
       if (d.trait) existing.trait = existing.trait
         ? existing.trait + '\n\n【' + bk + '】' + d.trait
         : d.trait;
+      if (bk && !(existing.appearsIn||[]).includes(bk)) {
+        existing.appearsIn = [...(existing.appearsIn||[]), bk];
+      }
     }
-    else detectives.push({id:nextDetectiveId++, name, authorName:aName, trait: d.trait ? '【'+bk+'】'+d.trait : '', notes:''});
+    else detectives.push({id:nextDetectiveId++, name, authorName:aName, trait: d.trait ? '【'+bk+'】'+d.trait : '', notes:'', appearsIn: bk ? [bk] : []});
   });
 
 

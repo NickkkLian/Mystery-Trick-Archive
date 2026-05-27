@@ -954,7 +954,11 @@ function renderBooks() {
     const badges = Object.entries(counts).filter(([,n])=>n>0).map(([cat,n])=>
       `<span class="book-count-badge bc-${cat.replace('-','_')}">${CAT_LABEL[cat]} ${n}</span>`).join('');
 
-    const rows = b.entries.map(e => `
+    const seen = new Set();
+    const rows = b.entries.filter(e => {
+      if (seen.has(e.title)) return false;
+      seen.add(e.title); return true;
+    }).map(e => `
       <div class="book-entry-row">
         <span class="be-cat ${CAT_CLASS[e.cat]||'cat-trick'}">${CAT_LABEL[e.cat]||''}</span>
         <div style="flex:1">

@@ -1726,7 +1726,7 @@ function renderDetectives() {
   empty.style.display='none';
 
   list.innerHTML = detectives.map((d,di) => {
-    const books = [...new Set(
+    const books = d.appearsIn && d.appearsIn.length ? d.appearsIn : [...new Set(
       entries.filter(e => {
         const names = Array.isArray(e.detectiveName) ? e.detectiveName : (e.detectiveName ? [e.detectiveName] : []);
         return names.includes(d.name);
@@ -1878,7 +1878,8 @@ async function submitDetective() {
   const name=document.getElementById('dName').value.trim();
   if (!name) { alert('请填写侦探姓名'); return; }
   const btn=document.getElementById('btnSubmitDetective'); btn.disabled=true; btn.textContent='保存中…';
-  const entry={id:editingDetectiveId||nextDetectiveId++, name, authorName:document.getElementById('dAuthor').value.trim(), trait:document.getElementById('dTrait').value.trim(), notes:document.getElementById('dNotes').value.trim()};
+  const existing = detectives.find(d=>d.id===editingDetectiveId);
+  const entry={id:editingDetectiveId||nextDetectiveId++, name, authorName:document.getElementById('dAuthor').value.trim(), trait:document.getElementById('dTrait').value.trim(), notes:document.getElementById('dNotes').value.trim(), appearsIn: existing?.appearsIn||[]};
   if (editingDetectiveId) { const i=detectives.findIndex(d=>d.id===editingDetectiveId); detectives[i]=entry; }
   else detectives.push(entry);
   const ok=await ghSave(); btn.disabled=false; btn.textContent='归档 · ARCHIVE';
@@ -2698,8 +2699,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const det = detectives.find(d => d.name === item.detectiveName);
       if (det) {
         if (item.authorName) det.authorName = item.authorName;
-        // Update detectiveName in entries based on appearsIn
-        // (we don't auto-edit entries here, just update the detective record)
+        if (Array.isArray(item.appearsIn)) det.appearsIn = item.appearsIn;
       }
     });
 

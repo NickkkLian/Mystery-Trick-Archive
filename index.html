@@ -1689,10 +1689,10 @@ function renderAuthors() {
       entries.flatMap(e=>(e.sources||[]).filter(s=>s.author===a.name).map(s=>s.work)).filter(Boolean)
     )];
     const dets = detectives.filter(d=>d.authorName===a.name);
-    const bookBadges = books.map(b=>'<span class="coll-badge cb-book">《'+esc(b)+'》</span>').join('');
+    const bookBadges = books.map(b=>{const t=b.replace(/^《|》$/g,'');return '<span class="coll-badge cb-book">《'+esc(t)+'》</span>';}).join('');
     const detBadges  = dets.map(d=>'<span class="coll-badge cb-det">'+esc(d.name)+'</span>').join('');
     const bookLinks = books.length ? '<div class="coll-section-label">书库作品</div><div class="coll-links">'+
-      books.map(b=>'<span class="coll-link" onclick="switchToBooks(this.dataset.b)" data-b="'+esc(b)+'">'+esc(b)+'</span>').join('')+'</div>' : '';
+      books.map(b=>{const t=b.replace(/^《|》$/g,'');return '<span class="coll-link" onclick="switchToBooks(this.dataset.b)" data-b="'+esc(t)+'">'+esc(t)+'</span>';}).join('')+'</div>' : '';
     const detLinks = dets.length ? '<div class="coll-section-label">旗下侦探</div><div class="coll-links">'+
       dets.map(d=>'<span class="coll-link coll-link-gold" onclick="switchToDetective('+d.id+')">'+esc(d.name)+'</span>').join('')+'</div>' : '';
 
@@ -1732,10 +1732,10 @@ function renderDetectives() {
         return names.includes(d.name);
       }).flatMap(e => (e.sources||[]).map(s=>s.work)).filter(Boolean)
     )];
-    const bookBadges = books.map(b=>'<span class="coll-badge cb-book">《'+esc(b)+'》</span>').join('');
+    const bookBadges = books.map(b=>{const t=b.replace(/^《|》$/g,'');return '<span class="coll-badge cb-book">《'+esc(t)+'》</span>';}).join('');
     const authorBadge = d.authorName ? '<span class="coll-badge" style="color:var(--ink-lighter);border-color:var(--ink-lighter);background:rgba(0,0,0,0.05)">'+esc(d.authorName)+'</span>' : '';
     const bookLinks = books.length ? '<div class="coll-section-label">出现作品（书库）</div><div class="coll-links">'+
-      books.map(b=>'<span class="coll-link" onclick="switchToBooks(this.dataset.b)" data-b="'+esc(b)+'">'+esc(b)+'</span>').join('')+'</div>' : '';
+      books.map(b=>{const t=b.replace(/^《|》$/g,'');return '<span class="coll-link" onclick="switchToBooks(this.dataset.b)" data-b="'+esc(t)+'">'+esc(t)+'</span>';}).join('')+'</div>' : '';
     const authorLink = d.authorName ? '<div class="coll-section-label" style="margin-top:8px">所属作者</div><div class="coll-links"><span class="coll-link coll-link-gold" onclick="switchToAuthor(this.dataset.a)" data-a="'+esc(d.authorName)+'">'+esc(d.authorName)+'</span></div>' : '';
 
     return '<div class="coll-item" id="detective-item-'+di+'">' +
@@ -2013,7 +2013,7 @@ document.getElementById('btnParseReply').addEventListener('click', function() {
     detail:   (p.detail||'').trim(),
     keywords: Array.isArray(p.keywords) ? p.keywords.map(s=>s.trim()).filter(Boolean) : [],
     detectiveName: Array.isArray(p.detectiveName) ? p.detectiveName.map(s=>s.trim()).filter(Boolean) : (p.detectiveName ? [p.detectiveName.trim()] : []),
-    sources:  [{work:bookName, author:authorName||(parsed.author&&parsed.author.name)||'', example:(p.example||'').trim()}],
+    sources:  [{work: bookName.replace(/^《|》$/g,''), author:authorName||(parsed.author&&parsed.author.name)||'', example:(p.example||'').trim()}],
   })).filter(p=>p.title&&p.summary);
 
   renderPreview(parsedImports);
@@ -2210,7 +2210,8 @@ document.getElementById('btnConfirmMerge').addEventListener('click', async () =>
 
   // Build the merged entry, preserving sources from original entries if not in result
   const origSources = entries.filter(e => mergeSelected.has(e.id)).flatMap(e => e.sources||[]);
-  const mergedSources = (mergedEntry.sources||[]).length ? mergedEntry.sources : origSources;
+  const rawSources = (mergedEntry.sources||[]).length ? mergedEntry.sources : origSources;
+  const mergedSources = rawSources.map(s => ({...s, work: (s.work||'').replace(/^《|》$/g, '')}));
 
   const newEntry = {
     id: nextId++,

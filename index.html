@@ -321,6 +321,7 @@
     <button class="btn-primary" id="btnAdd">＋ 新增</button>
     <button class="btn-primary" id="btnImport" style="background:var(--blue);border-color:#0f2540;box-shadow:3px 3px 0 #0f2540">⬇ 从书名导入</button>
     <button class="btn-merge" id="btnStartMerge">⇌ 合并条目</button>
+    <button class="btn-merge" id="btnExportPublic" style="background:var(--paper-dark);color:var(--green);border-color:var(--green)">↑ 导出公开数据</button>
     <button class="settings-btn" id="btnSettings">⚙</button>
   </div>
   <!-- merge selection bar -->
@@ -909,12 +910,13 @@ function renderTricks() {
     const srcNames = [...new Set((e.sources||[]).filter(s=>s.work).map(s=>s.work))];
     const srcLine = srcNames.length ? srcNames.map(s=>`《${esc(s)}》`).join(' ') : '';
     return `
-    <div class="card" data-id="${e.id}" onclick="openDetail(${e.id})">
+    <div class="card" data-id="${e.id}" onclick="openDetail(${e.id})" style="position:relative">
       <div class="card-actions">
         <button class="card-btn" onclick="event.stopPropagation();openEdit(${e.id})">✎</button>
         <button class="card-btn" onclick="event.stopPropagation();delEntry(${e.id})">✕</button>
       </div>
       <span class="card-cat ${CAT_CLASS[e.cat]||'cat-trick'}">${CAT_LABEL[e.cat]||esc(e.cat)}</span>
+      ${e.public?'<span style="position:absolute;top:8px;right:8px;font-size:9px;font-family:\'Special Elite\',monospace;color:var(--green);letter-spacing:1px;opacity:.8">✦ 公开</span>':''}
       <div class="card-title">${esc(e.title)}</div>
       ${srcLine?`<div class="card-sources">${srcLine}</div>`:''}
       ${e.cat==='detective-move'&&(e.detectiveName||[]).length?`<div class="card-sources" style="color:var(--green)">侦探：${esc((Array.isArray(e.detectiveName)?e.detectiveName:[e.detectiveName]).filter(Boolean).join('、'))}</div>`:''}
@@ -1085,6 +1087,11 @@ function openDetail(id) {
     ${e.cat==='trick'&&(e.keywords||[]).length?`<div class="d-hr"></div><div class="d-label">关键词</div><div class="d-keywords">${e.keywords.map(k=>`<span class="d-keyword">${esc(k)}</span>`).join('')}</div>`:''}
     ${e.notes?`<div class="d-hr"></div><div class="d-label">备注</div><div class="d-text" style="font-style:italic">${esc(e.notes)}</div>`:''}
     ${e.date?`<div class="d-hr"></div><div class="d-label">归档日期</div><div class="d-text" style="font-size:12px">${esc(e.date.replace(/-/g,'.'))}</div>`:''}
+    <div class="d-hr"></div>
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:'Special Elite',monospace;font-size:11px;letter-spacing:1.5px;color:var(--ink-lighter)">
+      <input type="checkbox" id="dPublicCheck" ${e.public?'checked':''} onchange="togglePublic(${e.id},this.checked)" />
+      PUBLIC · 公开展示
+    </label>
   `;
   openModal('detailModal');
 }
@@ -2724,6 +2731,75 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnVerifyCancel').addEventListener('click', () => closeModal('verifyModal'));
   document.getElementById('verifyModalClose').addEventListener('click', () => closeModal('verifyModal'));
   document.getElementById('verifyModal').addEventListener('click', e => { if (e.target.id === 'verifyModal') closeModal('verifyModal'); });
+});
+// ══════════════════════════════════════════════
+//  PUBLIC FLAG & EXPORT
+// ══════════════════════════════════════════════
+async function togglePublic(id, checked) {
+  const e = entries.find(x => x.id === id);
+  if (!e) return;
+  e.public = checked;
+  await ghSave();
+  renderTricks();
+}
+
+function exportPublic() {
+  const pub = entries.filter(e => e.public);
+  if (!pub.length) { alert('没有标记为「公开展示」的条目。'); return; }
+
+  const CAT_SECTION = {
+    'trick':          { type: 'tricks',         label: '诡计' },
+    'concept':        { type: 'concepts',        label: '概念' },
+    'narrative':      { type: 'narratives',      label: '叙述手法' },
+    'detective-move': { type: 'detective-moves', label: '侦探做法' },
+  };
+
+  // Group by cat
+  const groups = {};
+  pub.forEach(e => {
+    const sec = CAT_SECTION[e.cat] || { type: e.cat, label: e.cat };
+    if (!groups[sec.type]) groups[sec.type] = { type: sec.type, label: sec.label, items: [] };
+    // Build content: summary + detail + how/why
+    const parts = [];
+    if (e.summary) parts.push(e.summary);
+    if (e.detail)  parts.push(e.detail);
+    if ((e.how||[]).length)  parts.push('手法：' + e.how.join('；'));
+    if ((e.why||[]).length)  parts.push('目的：' + e.why.join('；'));
+
+    // Tags: keywords + howShort + whyShort
+    const tags = [...(e.keywords||[]), ...(e.howShort||[]), ...(e.whyShort||[])].filter(Boolean);
+
+    groups[sec.type].items.push({
+      id:        String(e.id),
+      name:      e.title || '',
+      summary:   e.summary || '',
+      category:  CAT_SECTION[e.cat]?.label || e.cat,
+      content:   parts.join('\n\n'),
+      tags,
+      updatedAt: e.date || '',
+    });
+  });
+
+  const ordered = ['tricks','concepts','narratives','detective-moves'];
+  const sections = ordered.filter(k => groups[k]).map(k => groups[k]);
+
+  const payload = {
+    dbId:        'mystery-tricks',
+    title:       '诡计逻辑库',
+    generatedAt: new Date().toISOString(),
+    sections,
+  };
+
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'mystery-tricks.public.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('btnExportPublic').addEventListener('click', exportPublic);
 });
 
 </script>

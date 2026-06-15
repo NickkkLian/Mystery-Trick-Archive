@@ -782,8 +782,8 @@
 //  CONFIG
 // ══════════════════════════════════════════════
 let cfg = (() => { try { return JSON.parse(localStorage.getItem('mtrick_cfg')) || {}; } catch { return {}; } })();
-/* [hub-portal] 令牌为空时从共享配置 pha-config 读 owner+token（附加，安全合并，不覆盖已填，不改 repo/path） */
-try{var _pha=JSON.parse(localStorage.getItem('pha-config')||'null');if(_pha&&_pha.token&&!cfg.token){cfg.owner=cfg.owner||_pha.owner;cfg.token=_pha.token;}}catch(e){}
+/* [hub-portal] 从共享配置 pha-config 补全 owner/repo/token + 修正默认数据路径（仅填空缺，不覆盖已填） */
+try{var _pha=JSON.parse(localStorage.getItem('pha-config')||'null');if(_pha){if(!cfg.owner&&_pha.owner)cfg.owner=_pha.owner;if(!cfg.repo&&_pha.repo)cfg.repo=_pha.repo;if(!cfg.token&&_pha.token)cfg.token=_pha.token;}if(!cfg.path)cfg.path='mystery.json';}catch(e){}
 function saveCfg() { localStorage.setItem('mtrick_cfg', JSON.stringify(cfg)); }
 
 // ══════════════════════════════════════════════

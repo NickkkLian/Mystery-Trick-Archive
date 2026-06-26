@@ -294,60 +294,61 @@
 <header class="site-header">
   <div class="header-card">
     <div class="header-stamp">MYSTERY<br>TRICK<br>ARCHIVE<br>诡计档案</div>
-    <p class="site-label">Case File · 诡计档案室</p>
+    <p class="site-label" data-i18n="siteLabel">Case File · 诡计档案室</p>
     <h1 class="site-title">诡计逻辑库<span class="site-title-en">Mystery Trick Archive</span></h1>
     <div class="divider-line"></div>
-    <p class="site-desc">收录推理小说中的经典诡计、概念与叙述手法，附原著运用示例。</p>
+    <p class="site-desc" data-i18n="siteDesc">收录推理小说中的经典诡计、概念与叙述手法，附原著运用示例。</p>
   </div>
 </header>
 
 <!-- MAIN TABS -->
 <div class="main-tabs">
-  <button class="main-tab active" data-panel="tricks">诡计库</button>
-  <button class="main-tab" data-panel="books">书库</button>
-  <button class="main-tab" data-panel="authors">作者集</button>
-  <button class="main-tab" data-panel="detectives">侦探集</button>
+  <button class="main-tab active" data-panel="tricks" data-i18n="tab_tricks">诡计库</button>
+  <button class="main-tab" data-panel="books" data-i18n="tab_books">书库</button>
+  <button class="main-tab" data-panel="authors" data-i18n="tab_authors">作者集</button>
+  <button class="main-tab" data-panel="detectives" data-i18n="tab_detectives">侦探集</button>
 </div>
 
 <!-- ══════════════════ TRICKS PANEL ══════════════════ -->
 <div class="panel active" id="panel-tricks">
   <div class="toolbar">
     <div class="search-wrap">
-      <input class="search-input" id="searchInput" type="text" placeholder="搜索标题、关键词、作者…" />
+      <input class="search-input" id="searchInput" type="text" data-i18n-ph="searchPh" placeholder="搜索标题、关键词、作者…" />
     </div>
     <div class="cat-tabs" id="catTabs">
-      <button class="cat-tab active" data-cat="all">全部</button>
-      <button class="cat-tab" data-cat="trick">诡计</button>
-      <button class="cat-tab" data-cat="concept">概念</button>
-      <button class="cat-tab" data-cat="narrative">叙述手法</button>
-    <button class="cat-tab" data-cat="detective-move">侦探做法</button>
+      <button class="cat-tab active" data-cat="all" data-i18n="ct_all">全部</button>
+      <button class="cat-tab" data-cat="trick" data-i18n="ct_trick">诡计</button>
+      <button class="cat-tab" data-cat="concept" data-i18n="ct_concept">概念</button>
+      <button class="cat-tab" data-cat="narrative" data-i18n="ct_narrative">叙述手法</button>
+    <button class="cat-tab" data-cat="detective-move" data-i18n="ct_dmove">侦探做法</button>
     </div>
-    <button class="btn-primary" id="btnAdd">＋ 新增</button>
-    <button class="btn-primary" id="btnImport" style="background:var(--blue);border-color:#0f2540;box-shadow:3px 3px 0 #0f2540">⬇ 从书名导入</button>
-    <button class="btn-merge" id="btnStartMerge">⇌ 合并条目</button>
-    <button class="btn-merge" id="btnExportPublic" style="background:var(--paper-dark);color:var(--green);border-color:var(--green)">↑ 导出公开数据</button>
+    <button class="btn-primary" id="btnAdd" data-i18n="btnAdd">＋ 新增</button>
+    <button class="btn-primary" id="btnImport" data-i18n="btnImport" style="background:var(--blue);border-color:#0f2540;box-shadow:3px 3px 0 #0f2540">⬇ 从书名导入</button>
+    <button class="btn-merge" id="btnStartMerge" data-i18n="btnMerge">⇌ 合并条目</button>
+    <button class="btn-merge" id="btnExportPublic" data-i18n="btnExport" style="background:var(--paper-dark);color:var(--green);border-color:var(--green)">↑ 导出公开数据</button>
+    <button class="settings-btn" id="langBtn" onclick="toggleLang()" title="中 / EN">EN</button>
     <button class="settings-btn" id="btnSettings">⚙</button>
   </div>
   <!-- merge selection bar -->
   <div class="merge-bar" id="mergeBar">
-    <span class="merge-bar-label">合并模式</span>
-    <span id="mergeCount" style="font-size:12px;color:var(--ink-faded)">已选 0 条</span>
-    <button class="btn-merge" id="btnDoMerge" disabled style="padding:5px 12px;font-size:12px">生成合并 Prompt</button>
-    <button class="btn-cancel" id="btnCancelMerge" style="padding:5px 10px;font-size:10px">取消</button>
+    <span class="merge-bar-label" data-i18n="mergeLabel">合并模式</span>
+    <span id="mergeCount" style="font-size:12px;color:var(--ink-faded)"></span>
+    <button class="btn-merge" id="btnDoMerge" disabled data-i18n="btnDoMerge" style="padding:5px 12px;font-size:12px">生成合并 Prompt</button>
+    <button class="btn-cancel" id="btnCancelMerge" data-i18n="cancel" style="padding:5px 10px;font-size:10px">取消</button>
   </div>
   <div class="filter-row">
     <span class="filter-label">HOW</span>
     <select class="filter-select" id="howFilter"><option value="">— 全部手法 —</option></select>
     <span class="filter-label" style="margin-left:6px">WHY</span>
     <select class="filter-select" id="whyFilter"><option value="">— 全部目的 —</option></select>
-    <button class="filter-clear" id="btnClearFilters">清除</button>
+    <button class="filter-clear" id="btnClearFilters" data-i18n="filterClear">清除</button>
   </div>
   <div class="stats-bar">
     <span id="statsText"></span>
     <span id="syncStatus"></span>
   </div>
   <main class="cards-grid" id="cardsGrid"></main>
-  <div class="empty-state" id="emptyState" style="display:none">— 未找到匹配条目 —</div>
+  <div class="empty-state" id="emptyState" data-i18n="emptyTricks" style="display:none">— 未找到匹配条目 —</div>
 </div>
 
 <!-- ══════════════════ BOOKS PANEL ══════════════════ -->
@@ -357,14 +358,14 @@
       <span class="books-header-title" id="booksHeaderTitle">LIBRARY · 书库索引</span>
     </div>
     <div class="book-list" id="bookList"></div>
-    <div class="empty-state" id="booksEmpty" style="display:none;margin-top:32px">— 暂无来源记录 —</div>
+    <div class="empty-state" id="booksEmpty" data-i18n="booksEmpty" style="display:none;margin-top:32px">— 暂无来源记录 —</div>
   </div>
 </div>
 
 <!-- ══════════════════ DETAIL MODAL ══════════════════ -->
 <div class="modal-overlay" id="detailModal">
   <div class="modal">
-    <div class="modal-header"><h2>CASE FILE · 档案详情</h2><button class="modal-close" id="detailClose">✕</button></div>
+    <div class="modal-header"><h2 data-i18n="hdrDetail">CASE FILE · 档案详情</h2><button class="modal-close" id="detailClose">✕</button></div>
     <div class="modal-body" id="detailBody"></div>
   </div>
 </div>
@@ -376,91 +377,91 @@
     <div class="modal-body">
       <div class="f-row">
         <div class="f-group">
-          <label class="f-label">条目名称 *</label>
-          <input class="f-input" id="fTitle" type="text" placeholder="诡计 / 概念名称…" />
+          <label class="f-label" data-i18n="fl_title">条目名称 *</label>
+          <input class="f-input" id="fTitle" type="text" data-i18n-ph="ph_fTitle" placeholder="诡计 / 概念名称…" />
         </div>
         <div class="f-group">
-          <label class="f-label">大类 *</label>
+          <label class="f-label" data-i18n="fl_cat">大类 *</label>
           <select class="f-select" id="fCat">
-            <option value="trick">诡计</option>
-            <option value="concept">概念</option>
-            <option value="narrative">叙述手法</option>
-            <option value="detective-move">侦探做法</option>
+            <option value="trick" data-i18n="ct_trick">诡计</option>
+            <option value="concept" data-i18n="ct_concept">概念</option>
+            <option value="narrative" data-i18n="ct_narrative">叙述手法</option>
+            <option value="detective-move" data-i18n="ct_dmove">侦探做法</option>
           </select>
         </div>
       </div>
       <!-- How/Why: trick only -->
       <div id="howWhySection">
-        <hr class="f-hr" /><p class="f-section">检索标签（仅诡计）</p>
+        <hr class="f-hr" /><p class="f-section" data-i18n="fsec_tags">检索标签（仅诡计）</p>
         <div class="f-row">
           <div class="f-group">
-            <label class="f-label">手法 How</label>
+            <label class="f-label" data-i18n="fl_how">手法 How</label>
             <div class="tag-input-wrap" id="howTagWrap"></div>
-            <p class="f-hint">详细描述，回车添加</p>
+            <p class="f-hint" data-i18n="fh_enter">详细描述，回车添加</p>
           </div>
           <div class="f-group">
-            <label class="f-label">目的 Why</label>
+            <label class="f-label" data-i18n="fl_why">目的 Why</label>
             <div class="tag-input-wrap" id="whyTagWrap"></div>
-            <p class="f-hint">详细描述，回车添加</p>
+            <p class="f-hint" data-i18n="fh_enter">详细描述，回车添加</p>
           </div>
         </div>
 
       </div>
       <hr class="f-hr" />
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
-        <p class="f-section" style="margin-bottom:0">内容</p>
-        <button class="btn-copy" id="btnFillPrompt" style="font-size:9.5px;padding:5px 12px">✦ 用 Prompt 填充</button>
+        <p class="f-section" data-i18n="fsec_content" style="margin-bottom:0">内容</p>
+        <button class="btn-copy" id="btnFillPrompt" data-i18n="fillBtn" style="font-size:9.5px;padding:5px 12px">✦ 用 Prompt 填充</button>
       </div>
       <!-- Inline prompt fill panel -->
       <div id="fillPromptWrap" style="display:none;margin-bottom:14px">
         <div class="prompt-box" id="fillPromptBox" style="max-height:160px;font-size:11px"></div>
         <div style="display:flex;gap:8px;align-items:center;margin:8px 0">
-          <button class="btn-copy" id="btnCopyFillPrompt">复制 Prompt</button>
+          <button class="btn-copy" id="btnCopyFillPrompt" data-i18n="copyPrompt">复制 Prompt</button>
           <span id="fillCopyConfirm" style="font-family:'Special Elite',monospace;font-size:10px;color:#6aaa5a;opacity:0;transition:opacity .3s"></span>
         </div>
-        <label class="f-label" style="margin-bottom:5px">把 Claude 的回复粘贴到这里：</label>
-        <textarea class="paste-area" id="fillPasteArea" style="min-height:100px" placeholder="粘贴 Claude 的完整回复…"></textarea>
+        <label class="f-label" data-i18n="pasteClaudeLabel" style="margin-bottom:5px">把 Claude 的回复粘贴到这里：</label>
+        <textarea class="paste-area" id="fillPasteArea" data-i18n-ph="pastePh" style="min-height:100px" placeholder="粘贴 Claude 的完整回复…"></textarea>
         <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
-          <button class="btn-submit" id="btnApplyFill" style="padding:7px 16px;font-size:10px">自动填入</button>
+          <button class="btn-submit" id="btnApplyFill" data-i18n="autofill" style="padding:7px 16px;font-size:10px">自动填入</button>
           <span class="parse-err" id="fillErr" style="display:none"></span>
         </div>
       </div>
       <div class="f-group">
-        <label class="f-label">简述 *</label>
-        <textarea class="f-textarea" id="fSummary" placeholder="核心逻辑是什么？" style="min-height:68px"></textarea>
+        <label class="f-label" data-i18n="fl_summary">简述 *</label>
+        <textarea class="f-textarea" id="fSummary" data-i18n-ph="ph_summary" placeholder="核心逻辑是什么？" style="min-height:68px"></textarea>
       </div>
       <div class="f-group">
-        <label class="f-label">详细分析</label>
-        <textarea class="f-textarea" id="fDetail" placeholder="变体、逻辑结构、注意事项…" style="min-height:95px"></textarea>
+        <label class="f-label" data-i18n="fl_detail">详细分析</label>
+        <textarea class="f-textarea" id="fDetail" data-i18n-ph="ph_detail" placeholder="变体、逻辑结构、注意事项…" style="min-height:95px"></textarea>
       </div>
-      <hr class="f-hr" /><p class="f-section">来源示例（可多条）</p>
+      <hr class="f-hr" /><p class="f-section" data-i18n="fsec_sources">来源示例（可多条）</p>
       <div class="source-list" id="sourceList"></div>
-      <button class="btn-add-source" id="btnAddSource">＋ 添加来源示例</button>
+      <button class="btn-add-source" id="btnAddSource" data-i18n="btnAddSource">＋ 添加来源示例</button>
       <div id="kwSection">
         <hr class="f-hr" />
         <div class="f-group">
-          <label class="f-label">关键词</label>
+          <label class="f-label" data-i18n="fl_keywords">关键词</label>
           <div class="tag-input-wrap" id="kwTagWrap"></div>
-          <p class="f-hint">回车添加</p>
+          <p class="f-hint" data-i18n="fh_enter2">回车添加</p>
         </div>
       </div>
       <hr class="f-hr" />
       <div id="fDetectiveSection" style="display:none">
         <div class="f-group">
-          <label class="f-label">关联侦探（可多个）</label>
+          <label class="f-label" data-i18n="fl_detectives">关联侦探（可多个）</label>
           <div class="tag-input-wrap" id="fDetectiveNameWrap"></div>
           <datalist id="fDetectiveDatalist"></datalist>
-          <p class="f-hint">回车添加，从侦探集中选择</p>
+          <p class="f-hint" data-i18n="fh_detectives">回车添加，从侦探集中选择</p>
         </div>
       </div>
 
       <div class="f-group">
-        <label class="f-label">备注</label>
-        <textarea class="f-textarea" id="fNotes" placeholder="个人备注、疑问、待补充内容…" style="min-height:60px"></textarea>
+        <label class="f-label" data-i18n="fl_notes">备注</label>
+        <textarea class="f-textarea" id="fNotes" data-i18n-ph="ph_notes" placeholder="个人备注、疑问、待补充内容…" style="min-height:60px"></textarea>
       </div>
       <div class="f-actions">
-        <button class="btn-submit" id="btnSubmit">归档 · ARCHIVE</button>
-        <button class="btn-cancel" id="btnCancel">取消</button>
+        <button class="btn-submit" id="btnSubmit" data-i18n="archive">归档 · ARCHIVE</button>
+        <button class="btn-cancel" id="btnCancel" data-i18n="cancel">取消</button>
         <span class="save-msg" id="saveMsg"></span>
       </div>
     </div>
@@ -476,29 +477,29 @@
       <!-- Step 1: enter book name, get prompt -->
       <div class="import-step active" id="importStep1">
         <div class="f-group">
-          <label class="f-label">书名 *</label>
-          <input class="f-input" id="importBookName" type="text" placeholder="例：三口棺材" />
+          <label class="f-label" data-i18n="il_book">书名 *</label>
+          <input class="f-input" id="importBookName" type="text" data-i18n-ph="ip_book" placeholder="例：三口棺材" />
         </div>
         <div class="f-group">
-          <label class="f-label">作者（可选，提高准确度）</label>
-          <input class="f-input" id="importAuthor" type="text" placeholder="例：约翰·狄克森·卡尔" />
+          <label class="f-label" data-i18n="il_author">作者（可选，提高准确度）</label>
+          <input class="f-input" id="importAuthor" type="text" data-i18n-ph="ip_author" placeholder="例：约翰·狄克森·卡尔" />
         </div>
         <div class="f-actions" style="margin-bottom:16px">
-          <button class="btn-submit" id="btnGenPrompt">生成 Prompt</button>
+          <button class="btn-submit" id="btnGenPrompt" data-i18n="genPrompt">生成 Prompt</button>
         </div>
         <div id="promptWrap" style="display:none">
-          <p class="f-label" style="margin-bottom:6px">把下面这段 prompt 复制，粘贴到 Claude 新对话里：</p>
+          <p class="f-label" data-i18n="copyPasteHint" style="margin-bottom:6px">把下面这段 prompt 复制，粘贴到 Claude 新对话里：</p>
           <div class="prompt-box" id="promptBox"></div>
           <div style="display:flex;gap:8px;align-items:center;margin-bottom:20px">
-            <button class="btn-copy" id="btnCopyPrompt">复制 Prompt</button>
+            <button class="btn-copy" id="btnCopyPrompt" data-i18n="copyPrompt">复制 Prompt</button>
             <span id="copyConfirm" style="font-family:'Special Elite',monospace;font-size:10px;color:#6aaa5a;opacity:0;transition:opacity .3s"></span>
           </div>
           <hr class="f-hr" />
-          <p class="f-label" style="margin-bottom:6px">把 Claude 的回复整个粘贴到这里：</p>
-          <textarea class="paste-area" id="pasteArea" placeholder="把 Claude 的完整回复粘贴在这里，不需要手动提取 JSON…"></textarea>
+          <p class="f-label" data-i18n="pasteWholeHint" style="margin-bottom:6px">把 Claude 的回复整个粘贴到这里：</p>
+          <textarea class="paste-area" id="pasteArea" data-i18n-ph="ip_pasteWhole" placeholder="把 Claude 的完整回复粘贴在这里，不需要手动提取 JSON…"></textarea>
           <div class="parse-err" id="parseErr" style="display:none"></div>
           <div class="f-actions" style="margin-top:10px">
-            <button class="btn-submit" id="btnParseReply">解析并预览</button>
+            <button class="btn-submit" id="btnParseReply" data-i18n="parsePreview">解析并预览</button>
           </div>
         </div>
       </div>
@@ -507,14 +508,14 @@
       <div class="import-step" id="importStep2">
         <p class="import-note" id="importNote"></p>
         <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
-          <button class="btn-cancel" id="btnSelectAll" style="font-size:9.5px;padding:5px 10px">全选</button>
-          <button class="btn-cancel" id="btnSelectNone" style="font-size:9.5px;padding:5px 10px">全不选</button>
+          <button class="btn-cancel" id="btnSelectAll" data-i18n="selectAll" style="font-size:9.5px;padding:5px 10px">全选</button>
+          <button class="btn-cancel" id="btnSelectNone" data-i18n="selectNone" style="font-size:9.5px;padding:5px 10px">全不选</button>
           <span style="font-family:'Special Elite',monospace;font-size:9px;color:rgba(242,234,216,.3);margin-left:auto" id="selectedCount"></span>
         </div>
         <div class="preview-list" id="previewList"></div>
         <div class="f-actions" style="margin-top:14px">
-          <button class="btn-submit" id="btnDoImport">导入选中条目</button>
-          <button class="btn-cancel" id="btnBackToStep1">← 返回</button>
+          <button class="btn-submit" id="btnDoImport" data-i18n="doImport">导入选中条目</button>
+          <button class="btn-cancel" id="btnBackToStep1" data-i18n="back">← 返回</button>
           <span class="save-msg" id="importSaveMsg"></span>
         </div>
       </div>
@@ -526,25 +527,25 @@
 <!-- ══════════════════ SETTINGS MODAL ══════════════════ -->
 <div class="modal-overlay" id="settingsModal">
   <div class="modal modal-sm">
-    <div class="modal-header"><h2>SETTINGS · GitHub 配置</h2><button class="modal-close" id="settingsClose">✕</button></div>
+    <div class="modal-header"><h2 data-i18n="hdrSettings">SETTINGS · GitHub 配置</h2><button class="modal-close" id="settingsClose">✕</button></div>
     <div class="modal-body">
       <div class="f-group">
-        <label class="f-label">Personal Access Token</label>
+        <label class="f-label" data-i18n="sl_token">Personal Access Token</label>
         <input class="f-input" id="sToken" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
-        <p class="f-hint">需要 Contents: read &amp; write 权限。仅存于本地，不会上传。</p>
+        <p class="f-hint" data-i18n="sh_token">需要 Contents: read &amp; write 权限。仅存于本地，不会上传。</p>
       </div>
       <div class="f-row">
-        <div class="f-group"><label class="f-label">GitHub 用户名</label><input class="f-input" id="sOwner" type="text" placeholder="your-username" /></div>
-        <div class="f-group"><label class="f-label">Repo 名称</label><input class="f-input" id="sRepo" type="text" placeholder="mystery-data" /></div>
+        <div class="f-group"><label class="f-label" data-i18n="sl_owner">GitHub 用户名</label><input class="f-input" id="sOwner" type="text" placeholder="your-username" /></div>
+        <div class="f-group"><label class="f-label" data-i18n="sl_repo">Repo 名称</label><input class="f-input" id="sRepo" type="text" placeholder="mystery-data" /></div>
       </div>
       <div class="f-group">
-        <label class="f-label">数据文件路径</label>
+        <label class="f-label" data-i18n="sl_path">数据文件路径</label>
         <input class="f-input" id="sPath" type="text" placeholder="data.json" />
       </div>
       <div class="f-actions">
-        <button class="btn-submit" id="btnSaveSettings">保存配置</button>
-        <button class="btn-cancel" id="btnTestConn">测试连接</button>
-        <button class="btn-cancel" id="btnReloadData" style="margin-left:auto">重新拉取</button>
+        <button class="btn-submit" id="btnSaveSettings" data-i18n="saveSettings">保存配置</button>
+        <button class="btn-cancel" id="btnTestConn" data-i18n="testConn">测试连接</button>
+        <button class="btn-cancel" id="btnReloadData" data-i18n="reload" style="margin-left:auto">重新拉取</button>
       </div>
       <div id="settingsMsg" style="margin-top:9px;font-family:'Special Elite',monospace;font-size:10.5px;letter-spacing:1px;"></div>
     </div>
@@ -568,7 +569,7 @@
   <div class="coll-wrap">
     <div class="coll-toolbar">
       <span class="coll-title" id="detectivesTitle">DETECTIVES · 侦探集</span>
-      <button class="btn-primary" id="btnVerifyRelations" style="font-size:12px;padding:6px 12px">🔍 校对关系</button>
+      <button class="btn-primary" id="btnVerifyRelations" data-i18n="btnVerify" style="font-size:12px;padding:6px 12px">🔍 校对关系</button>
     </div>
     <div class="coll-list" id="detectiveList"></div>
     <div class="empty-state" id="detectivesEmpty" style="display:none;margin-top:32px">— 暂无侦探记录 —</div>
@@ -581,20 +582,20 @@
     <div class="modal-header"><h2 id="authorModalTitle">NEW AUTHOR · 新增作者</h2><button class="modal-close" id="authorModalClose">✕</button></div>
     <div class="modal-body">
       <div class="f-group">
-        <label class="f-label">作者姓名 *</label>
-        <input class="f-input" id="aName" type="text" placeholder="作者名…" />
+        <label class="f-label" data-i18n="al_name">作者姓名 *</label>
+        <input class="f-input" id="aName" type="text" data-i18n-ph="ap_name" placeholder="作者名…" />
       </div>
       <div class="f-group">
-        <label class="f-label">风格碎片（从作品中提炼的特质）</label>
-        <textarea class="f-textarea" id="aStyle" placeholder="从书库里的作品中，你观察到的这位作者的写作特质、惯用手法、叙事倾向…" style="min-height:110px"></textarea>
+        <label class="f-label" data-i18n="al_style">风格碎片（从作品中提炼的特质）</label>
+        <textarea class="f-textarea" id="aStyle" data-i18n-ph="ap_style" placeholder="从书库里的作品中，你观察到的这位作者的写作特质、惯用手法、叙事倾向…" style="min-height:110px"></textarea>
       </div>
       <div class="f-group">
-        <label class="f-label">备注</label>
-        <textarea class="f-textarea" id="aNotes" placeholder="个人备注…" style="min-height:60px"></textarea>
+        <label class="f-label" data-i18n="fl_notes">备注</label>
+        <textarea class="f-textarea" id="aNotes" data-i18n-ph="ap_notes" placeholder="个人备注…" style="min-height:60px"></textarea>
       </div>
       <div class="f-actions">
-        <button class="btn-submit" id="btnSubmitAuthor">归档 · ARCHIVE</button>
-        <button class="btn-cancel" id="btnCancelAuthor">取消</button>
+        <button class="btn-submit" id="btnSubmitAuthor" data-i18n="archive">归档 · ARCHIVE</button>
+        <button class="btn-cancel" id="btnCancelAuthor" data-i18n="cancel">取消</button>
         <span class="save-msg" id="authorSaveMsg"></span>
       </div>
     </div>
@@ -608,25 +609,25 @@
     <div class="modal-body">
       <div class="f-row">
         <div class="f-group">
-          <label class="f-label">侦探姓名 *</label>
-          <input class="f-input" id="dName" type="text" placeholder="侦探名…" />
+          <label class="f-label" data-i18n="dl_name">侦探姓名 *</label>
+          <input class="f-input" id="dName" type="text" data-i18n-ph="dp_name" placeholder="侦探名…" />
         </div>
         <div class="f-group">
-          <label class="f-label">所属作者</label>
-          <input class="f-input" id="dAuthor" type="text" placeholder="作者名…" />
+          <label class="f-label" data-i18n="dl_author">所属作者</label>
+          <input class="f-input" id="dAuthor" type="text" data-i18n-ph="ap_name" placeholder="作者名…" />
         </div>
       </div>
       <div class="f-group">
-        <label class="f-label">方法论 / 特质（仅基于书库中已有作品）</label>
-        <textarea class="f-textarea" id="dTrait" placeholder="这个侦探在书库里的作品中展现出的推理方式、性格特质、标志性手法…" style="min-height:110px"></textarea>
+        <label class="f-label" data-i18n="dl_trait">方法论 / 特质（仅基于书库中已有作品）</label>
+        <textarea class="f-textarea" id="dTrait" data-i18n-ph="dp_trait" placeholder="这个侦探在书库里的作品中展现出的推理方式、性格特质、标志性手法…" style="min-height:110px"></textarea>
       </div>
       <div class="f-group">
-        <label class="f-label">备注</label>
-        <textarea class="f-textarea" id="dNotes" placeholder="个人备注…" style="min-height:60px"></textarea>
+        <label class="f-label" data-i18n="fl_notes">备注</label>
+        <textarea class="f-textarea" id="dNotes" data-i18n-ph="ap_notes" placeholder="个人备注…" style="min-height:60px"></textarea>
       </div>
       <div class="f-actions">
-        <button class="btn-submit" id="btnSubmitDetective">归档 · ARCHIVE</button>
-        <button class="btn-cancel" id="btnCancelDetective">取消</button>
+        <button class="btn-submit" id="btnSubmitDetective" data-i18n="archive">归档 · ARCHIVE</button>
+        <button class="btn-cancel" id="btnCancelDetective" data-i18n="cancel">取消</button>
         <span class="save-msg" id="detectiveSaveMsg"></span>
       </div>
     </div>
@@ -637,30 +638,30 @@
 <!-- ══ MERGE MODAL ══ -->
 <div class="modal-overlay" id="mergeModal">
   <div class="modal">
-    <div class="modal-header"><h2>MERGE · 合并条目</h2><button class="modal-close" id="mergeModalClose">✕</button></div>
+    <div class="modal-header"><h2 data-i18n="hdrMerge">MERGE · 合并条目</h2><button class="modal-close" id="mergeModalClose">✕</button></div>
     <div class="modal-body">
-      <p class="f-label" style="margin-bottom:6px">把下面这段 prompt 复制，粘贴到 Claude 新对话里：</p>
+      <p class="f-label" data-i18n="copyPasteHint" style="margin-bottom:6px">把下面这段 prompt 复制，粘贴到 Claude 新对话里：</p>
       <div class="prompt-box" id="mergePromptBox" style="max-height:200px;font-size:11px"></div>
       <div style="display:flex;gap:8px;align-items:center;margin:8px 0 18px">
-        <button class="btn-copy" id="btnCopyMergePrompt">复制 Prompt</button>
+        <button class="btn-copy" id="btnCopyMergePrompt" data-i18n="copyPrompt">复制 Prompt</button>
         <span id="mergeCopyConfirm" style="font-family:'Special Elite',monospace;font-size:10px;color:#6aaa5a;opacity:0;transition:opacity .3s"></span>
       </div>
       <hr class="f-hr" />
-      <p class="f-label" style="margin-bottom:6px">把 Claude 的回复粘贴到这里：</p>
-      <textarea class="paste-area" id="mergePasteArea" style="min-height:140px" placeholder="粘贴 Claude 的完整回复…"></textarea>
+      <p class="f-label" data-i18n="pasteClaudeLabel" style="margin-bottom:6px">把 Claude 的回复粘贴到这里：</p>
+      <textarea class="paste-area" id="mergePasteArea" data-i18n-ph="pastePh" style="min-height:140px" placeholder="粘贴 Claude 的完整回复…"></textarea>
       <div class="parse-err" id="mergeParseErr" style="display:none;margin-top:6px"></div>
       <div class="f-actions" style="margin-top:10px">
-        <button class="btn-submit" id="btnApplyMerge">预览合并结果</button>
-        <button class="btn-cancel" id="btnMergeCancel2">取消</button>
+        <button class="btn-submit" id="btnApplyMerge" data-i18n="mergePreviewBtn">预览合并结果</button>
+        <button class="btn-cancel" id="btnMergeCancel2" data-i18n="cancel">取消</button>
       </div>
       <!-- preview of merged entry -->
       <div id="mergePreview" style="display:none;margin-top:16px">
         <hr class="f-hr" />
-        <p class="f-label" style="margin-bottom:8px">合并后的条目：</p>
+        <p class="f-label" data-i18n="mergedEntryLabel" style="margin-bottom:8px">合并后的条目：</p>
         <div id="mergePreviewContent" style="background:var(--paper-dark);border:1.5px solid var(--paper-darker);padding:14px"></div>
         <div class="f-actions" style="margin-top:12px">
-          <button class="btn-submit" id="btnConfirmMerge">确认合并并删除原条目</button>
-          <button class="btn-cancel" id="btnMergeBack">← 返回修改</button>
+          <button class="btn-submit" id="btnConfirmMerge" data-i18n="confirmMergeBtn">确认合并并删除原条目</button>
+          <button class="btn-cancel" id="btnMergeBack" data-i18n="backEdit">← 返回修改</button>
           <span class="save-msg" id="mergeSaveMsg"></span>
         </div>
       </div>
@@ -678,26 +679,26 @@
     <div class="modal-body">
       <div class="f-row">
         <div class="f-group">
-          <label class="f-label">出处书名 *</label>
-          <input class="f-input" id="clWork" type="text" placeholder="小说名…" />
+          <label class="f-label" data-i18n="cll_work">出处书名 *</label>
+          <input class="f-input" id="clWork" type="text" data-i18n-ph="clp_work" placeholder="小说名…" />
         </div>
         <div class="f-group">
-          <label class="f-label">案件名称</label>
-          <input class="f-input" id="clCase" type="text" placeholder="第几案、案件名…" />
+          <label class="f-label" data-i18n="cll_case">案件名称</label>
+          <input class="f-input" id="clCase" type="text" data-i18n-ph="clp_case" placeholder="第几案、案件名…" />
         </div>
       </div>
       <div class="f-group">
-        <label class="f-label">推理步骤 *（每行一步，最后一行为结论）</label>
+        <label class="f-label" data-i18n="cll_steps">推理步骤 *（每行一步，最后一行为结论）</label>
         <textarea class="f-textarea" id="clSteps" placeholder="发现凶器上有指纹&#10;排除不在场的嫌疑人&#10;发现关键证人证词矛盾&#10;→ 得出凶手为X" style="min-height:140px"></textarea>
-        <p class="f-hint">最后一行或以「→」开头的行将高亮显示为结论。</p>
+        <p class="f-hint" data-i18n="clh_steps">最后一行或以「→」开头的行将高亮显示为结论。</p>
       </div>
       <div class="f-group">
-        <label class="f-label">备注</label>
-        <textarea class="f-textarea" id="clNotes" placeholder="个人备注、疑问…" style="min-height:55px"></textarea>
+        <label class="f-label" data-i18n="fl_notes">备注</label>
+        <textarea class="f-textarea" id="clNotes" data-i18n-ph="clp_notes" placeholder="个人备注、疑问…" style="min-height:55px"></textarea>
       </div>
       <div class="f-actions">
-        <button class="btn-submit" id="btnSubmitCL">归档 · ARCHIVE</button>
-        <button class="btn-cancel" id="btnCancelCL">取消</button>
+        <button class="btn-submit" id="btnSubmitCL" data-i18n="archive">归档 · ARCHIVE</button>
+        <button class="btn-cancel" id="btnCancelCL" data-i18n="cancel">取消</button>
         <span class="save-msg" id="clSaveMsg"></span>
       </div>
     </div>
@@ -707,22 +708,22 @@
 <!-- ══ CASE LOGIC PROMPT MODAL ══ -->
 <div class="modal-overlay" id="clPromptModal">
   <div class="modal">
-    <div class="modal-header"><h2 id="clPromptModalTitle">推理逻辑 · 生成 Prompt</h2><button class="modal-close" id="clPromptModalClose">✕</button></div>
+    <div class="modal-header"><h2 id="clPromptModalTitle" data-i18n="hdrCLPrompt">推理逻辑 · 生成 Prompt</h2><button class="modal-close" id="clPromptModalClose">✕</button></div>
     <div class="modal-body">
-      <p class="f-label" style="margin-bottom:6px">把下面这段 prompt 复制到 Claude 新对话：</p>
+      <p class="f-label" data-i18n="pasteCLHint" style="margin-bottom:6px">把下面这段 prompt 复制到 Claude 新对话：</p>
       <div class="prompt-box" id="clPromptBox" style="max-height:180px;font-size:11px"></div>
       <div style="display:flex;gap:8px;align-items:center;margin:8px 0 16px">
-        <button class="btn-copy" id="btnCopyCLPrompt">复制 Prompt</button>
+        <button class="btn-copy" id="btnCopyCLPrompt" data-i18n="copyPrompt">复制 Prompt</button>
         <span id="clPromptCopyConfirm" style="font-family:'Special Elite',monospace;font-size:10px;color:#6aaa5a;opacity:0;transition:opacity .3s"></span>
       </div>
       <hr class="f-hr" />
-      <p class="f-label" style="margin-bottom:6px">把 Claude 的回复粘贴到这里：</p>
-      <textarea class="paste-area" id="clPromptPasteArea" style="min-height:120px" placeholder="粘贴 Claude 的完整回复…"></textarea>
+      <p class="f-label" data-i18n="pasteClaudeLabel" style="margin-bottom:6px">把 Claude 的回复粘贴到这里：</p>
+      <textarea class="paste-area" id="clPromptPasteArea" data-i18n-ph="pastePh" style="min-height:120px" placeholder="粘贴 Claude 的完整回复…"></textarea>
       <div class="parse-err" id="clPromptParseErr" style="display:none;margin-top:6px"></div>
       <div id="clPromptPreview" style="display:none;margin-top:12px"></div>
       <div class="f-actions" style="margin-top:10px">
-        <button class="btn-submit" id="btnParseCLReply">解析结果</button>
-        <button class="btn-cancel" id="btnCLPromptCancel">取消</button>
+        <button class="btn-submit" id="btnParseCLReply" data-i18n="parseResult">解析结果</button>
+        <button class="btn-cancel" id="btnCLPromptCancel" data-i18n="cancel">取消</button>
         <span class="save-msg" id="clPromptSaveMsg"></span>
       </div>
     </div>
@@ -732,23 +733,23 @@
 <!-- ══ TRICK PROMPT MODAL ══ -->
 <div class="modal-overlay" id="trickPromptModal">
   <div class="modal">
-    <div class="modal-header"><h2 id="trickPromptModalTitle">增补条目 · 生成 Prompt</h2><button class="modal-close" id="trickPromptModalClose">✕</button></div>
+    <div class="modal-header"><h2 id="trickPromptModalTitle" data-i18n="hdrTrickPrompt">增补条目 · 生成 Prompt</h2><button class="modal-close" id="trickPromptModalClose">✕</button></div>
     <div class="modal-body">
-      <p class="f-label" style="margin-bottom:6px">把下面这段 prompt 复制到 Claude 新对话：</p>
+      <p class="f-label" data-i18n="pasteCLHint" style="margin-bottom:6px">把下面这段 prompt 复制到 Claude 新对话：</p>
       <div class="prompt-box" id="trickPromptBox" style="max-height:180px;font-size:11px"></div>
       <div style="display:flex;gap:8px;align-items:center;margin:8px 0 16px">
-        <button class="btn-copy" id="btnCopyTrickPrompt">复制 Prompt</button>
+        <button class="btn-copy" id="btnCopyTrickPrompt" data-i18n="copyPrompt">复制 Prompt</button>
         <span id="trickPromptCopyConfirm" style="font-family:'Special Elite',monospace;font-size:10px;color:#6aaa5a;opacity:0;transition:opacity .3s"></span>
       </div>
       <hr class="f-hr" />
-      <p class="f-label" style="margin-bottom:6px">把 Claude 的回复粘贴到这里：</p>
-      <textarea class="paste-area" id="trickPromptPasteArea" style="min-height:120px" placeholder="粘贴 Claude 的完整回复…"></textarea>
+      <p class="f-label" data-i18n="pasteClaudeLabel" style="margin-bottom:6px">把 Claude 的回复粘贴到这里：</p>
+      <textarea class="paste-area" id="trickPromptPasteArea" data-i18n-ph="pastePh" style="min-height:120px" placeholder="粘贴 Claude 的完整回复…"></textarea>
       <div class="parse-err" id="trickPromptParseErr" style="display:none;margin-top:6px"></div>
       <div id="trickPromptPreview" style="display:none;margin-top:12px"></div>
       <div class="f-actions" style="margin-top:10px">
-        <button class="btn-submit" id="btnParseTrickReply">解析结果</button>
-        <button class="btn-submit" id="btnConfirmTrickImport" style="display:none">确认导入</button>
-        <button class="btn-cancel" id="btnTrickPromptCancel">取消</button>
+        <button class="btn-submit" id="btnParseTrickReply" data-i18n="parseResult">解析结果</button>
+        <button class="btn-submit" id="btnConfirmTrickImport" data-i18n="confirmImport" style="display:none">确认导入</button>
+        <button class="btn-cancel" id="btnTrickPromptCancel" data-i18n="cancel">取消</button>
         <span class="save-msg" id="trickPromptSaveMsg"></span>
       </div>
     </div>
@@ -758,23 +759,23 @@
 <!-- ══ VERIFY RELATIONS MODAL ══ -->
 <div class="modal-overlay" id="verifyModal">
   <div class="modal">
-    <div class="modal-header"><h2>校对作者 · 侦探 · 作品关系</h2><button class="modal-close" id="verifyModalClose">✕</button></div>
+    <div class="modal-header"><h2 data-i18n="hdrVerify">校对作者 · 侦探 · 作品关系</h2><button class="modal-close" id="verifyModalClose">✕</button></div>
     <div class="modal-body">
-      <p class="f-label" style="margin-bottom:6px">把下面这段 prompt 复制到 Claude 新对话：</p>
+      <p class="f-label" data-i18n="pasteCLHint" style="margin-bottom:6px">把下面这段 prompt 复制到 Claude 新对话：</p>
       <div class="prompt-box" id="verifyPromptBox" style="max-height:200px;font-size:11px"></div>
       <div style="display:flex;gap:8px;align-items:center;margin:8px 0 16px">
-        <button class="btn-copy" id="btnCopyVerifyPrompt">复制 Prompt</button>
+        <button class="btn-copy" id="btnCopyVerifyPrompt" data-i18n="copyPrompt">复制 Prompt</button>
         <span id="verifyCopyConfirm" style="font-family:'Special Elite',monospace;font-size:10px;color:#6aaa5a;opacity:0;transition:opacity .3s"></span>
       </div>
       <hr class="f-hr" />
-      <p class="f-label" style="margin-bottom:6px">把 Claude 的回复粘贴到这里：</p>
-      <textarea class="paste-area" id="verifyPasteArea" style="min-height:120px" placeholder="粘贴 Claude 的完整回复…"></textarea>
+      <p class="f-label" data-i18n="pasteClaudeLabel" style="margin-bottom:6px">把 Claude 的回复粘贴到这里：</p>
+      <textarea class="paste-area" id="verifyPasteArea" data-i18n-ph="pastePh" style="min-height:120px" placeholder="粘贴 Claude 的完整回复…"></textarea>
       <div class="parse-err" id="verifyParseErr" style="display:none;margin-top:6px"></div>
       <div id="verifyPreview" style="display:none;margin-top:12px"></div>
       <div class="f-actions" style="margin-top:10px">
-        <button class="btn-submit" id="btnParseVerify">解析并预览</button>
-        <button class="btn-submit" id="btnApplyVerify" style="display:none">确认应用</button>
-        <button class="btn-cancel" id="btnVerifyCancel">取消</button>
+        <button class="btn-submit" id="btnParseVerify" data-i18n="parsePreview">解析并预览</button>
+        <button class="btn-submit" id="btnApplyVerify" data-i18n="confirmApply" style="display:none">确认应用</button>
+        <button class="btn-cancel" id="btnVerifyCancel" data-i18n="cancel">取消</button>
         <span class="save-msg" id="verifySaveMsg"></span>
       </div>
     </div>
@@ -789,6 +790,147 @@ let cfg = (() => { try { return JSON.parse(localStorage.getItem('mtrick_cfg')) |
 /* [hub-portal] 从共享配置 pha-config 补全 owner/repo/token + 修正默认数据路径（仅填空缺，不覆盖已填） */
 try{var _pha=JSON.parse(localStorage.getItem('pha-config')||'null');if(_pha){if(!cfg.owner&&_pha.owner)cfg.owner=_pha.owner;if(!cfg.repo&&_pha.repo)cfg.repo=_pha.repo;if(!cfg.token&&_pha.token)cfg.token=_pha.token;}if(!cfg.path)cfg.path='mystery.json';}catch(e){}
 function saveCfg() { localStorage.setItem('mtrick_cfg', JSON.stringify(cfg)); }
+
+// ══════════════════════════════════════════════
+//  双语 i18n（全站共享 pha-lang，默认 zh）
+// ══════════════════════════════════════════════
+let lang = (() => { try { return localStorage.getItem('pha-lang') === 'en' ? 'en' : 'zh'; } catch { return 'zh'; } })();
+const T = (zh, en) => lang === 'en' ? en : zh;
+// 分类显示名（cat 键是存储值；CAT_LABEL 中文版仍供 prompt 使用，见后文）
+const CAT_LABEL_EN = { trick:'Trick', concept:'Concept', narrative:'Narrative', 'detective-move':'Detective Move' };
+const catL = cat => lang === 'en' ? (CAT_LABEL_EN[cat] || cat) : (CAT_LABEL[cat] || cat);
+const I18N = {
+  siteLabel:{zh:'Case File · 诡计档案室',en:'Case File · Archive Room'},
+  siteDesc:{zh:'收录推理小说中的经典诡计、概念与叙述手法，附原著运用示例。',en:'A catalog of classic tricks, concepts and narrative devices in mystery fiction, with examples from the originals.'},
+  tab_tricks:{zh:'诡计库',en:'Tricks'},
+  tab_books:{zh:'书库',en:'Library'},
+  tab_authors:{zh:'作者集',en:'Authors'},
+  tab_detectives:{zh:'侦探集',en:'Detectives'},
+  searchPh:{zh:'搜索标题、关键词、作者…',en:'Search title, keyword, author…'},
+  ct_all:{zh:'全部',en:'All'},
+  ct_trick:{zh:'诡计',en:'Trick'},
+  ct_concept:{zh:'概念',en:'Concept'},
+  ct_narrative:{zh:'叙述手法',en:'Narrative'},
+  ct_dmove:{zh:'侦探做法',en:'Detective Move'},
+  btnAdd:{zh:'＋ 新增',en:'＋ New'},
+  btnImport:{zh:'⬇ 从书名导入',en:'⬇ Import by book'},
+  btnMerge:{zh:'⇌ 合并条目',en:'⇌ Merge'},
+  btnExport:{zh:'↑ 导出公开数据',en:'↑ Export public'},
+  mergeLabel:{zh:'合并模式',en:'MERGE MODE'},
+  btnDoMerge:{zh:'生成合并 Prompt',en:'Build merge prompt'},
+  cancel:{zh:'取消',en:'Cancel'},
+  filterClear:{zh:'清除',en:'Clear'},
+  emptyTricks:{zh:'— 未找到匹配条目 —',en:'— No matching entries —'},
+  booksEmpty:{zh:'— 暂无来源记录 —',en:'— No source records —'},
+  authorsEmpty:{zh:'— 暂无作者记录 —',en:'— No author records —'},
+  detectivesEmpty:{zh:'— 暂无侦探记录 —',en:'— No detective records —'},
+  hdrDetail:{zh:'CASE FILE · 档案详情',en:'CASE FILE'},
+  hdrSettings:{zh:'SETTINGS · GitHub 配置',en:'SETTINGS · GitHub'},
+  hdrImport:{zh:'IMPORT · 从书名导入',en:'IMPORT · By book'},
+  hdrMerge:{zh:'MERGE · 合并条目',en:'MERGE · Entries'},
+  hdrVerify:{zh:'校对作者 · 侦探 · 作品关系',en:'Verify author · detective · book links'},
+  btnVerify:{zh:'🔍 校对关系',en:'🔍 Verify links'},
+  // form labels
+  fl_title:{zh:'条目名称 *',en:'Title *'},
+  fl_cat:{zh:'大类 *',en:'Category *'},
+  fsec_tags:{zh:'检索标签（仅诡计）',en:'Search tags (tricks only)'},
+  fl_how:{zh:'手法 How',en:'How'},
+  fl_why:{zh:'目的 Why',en:'Why'},
+  fh_enter:{zh:'详细描述，回车添加',en:'Describe, Enter to add'},
+  fh_enter2:{zh:'回车添加',en:'Enter to add'},
+  fsec_content:{zh:'内容',en:'Content'},
+  fillBtn:{zh:'✦ 用 Prompt 填充',en:'✦ Fill via prompt'},
+  copyPrompt:{zh:'复制 Prompt',en:'Copy prompt'},
+  pasteClaudeLabel:{zh:'把 Claude 的回复粘贴到这里：',en:'Paste Claude’s reply here:'},
+  pastePh:{zh:'粘贴 Claude 的完整回复…',en:'Paste Claude’s full reply…'},
+  autofill:{zh:'自动填入',en:'Auto-fill'},
+  fl_summary:{zh:'简述 *',en:'Summary *'},
+  ph_summary:{zh:'核心逻辑是什么？',en:'What is the core logic?'},
+  fl_detail:{zh:'详细分析',en:'Detailed analysis'},
+  ph_detail:{zh:'变体、逻辑结构、注意事项…',en:'Variants, logic, caveats…'},
+  fsec_sources:{zh:'来源示例（可多条）',en:'Source examples (multiple)'},
+  btnAddSource:{zh:'＋ 添加来源示例',en:'＋ Add source'},
+  fl_keywords:{zh:'关键词',en:'Keywords'},
+  fl_detectives:{zh:'关联侦探（可多个）',en:'Linked detectives (multiple)'},
+  fh_detectives:{zh:'回车添加，从侦探集中选择',en:'Enter to add, pick from Detectives'},
+  fl_notes:{zh:'备注',en:'Notes'},
+  ph_notes:{zh:'个人备注、疑问、待补充内容…',en:'Personal notes, questions, to-do…'},
+  archive:{zh:T('归档 · ARCHIVE','Archive'),en:'Archive'},
+  // import modal
+  il_book:{zh:'书名 *',en:'Book title *'},
+  ip_book:{zh:'例：三口棺材',en:'e.g. The Three Coffins'},
+  il_author:{zh:'作者（可选，提高准确度）',en:'Author (optional, improves accuracy)'},
+  ip_author:{zh:'例：约翰·狄克森·卡尔',en:'e.g. John Dickson Carr'},
+  genPrompt:{zh:'生成 Prompt',en:'Build prompt'},
+  copyPasteHint:{zh:'把下面这段 prompt 复制，粘贴到 Claude 新对话里：',en:'Copy this prompt and paste it into a new Claude chat:'},
+  pasteWholeHint:{zh:'把 Claude 的回复整个粘贴到这里：',en:'Paste Claude’s whole reply here:'},
+  ip_pasteWhole:{zh:'把 Claude 的完整回复粘贴在这里，不需要手动提取 JSON…',en:'Paste Claude’s full reply here — no need to extract JSON manually…'},
+  parsePreview:{zh:'解析并预览',en:'Parse & preview'},
+  selectAll:{zh:'全选',en:'Select all'},
+  selectNone:{zh:'全不选',en:'Select none'},
+  doImport:{zh:'导入选中条目',en:'Import selected'},
+  back:{zh:'← 返回',en:'← Back'},
+  // settings
+  sl_token:{zh:'Personal Access Token',en:'Personal Access Token'},
+  sh_token:{zh:'需要 Contents: read & write 权限。仅存于本地，不会上传。',en:'Needs Contents: read & write. Stored locally only, never uploaded.'},
+  sl_owner:{zh:'GitHub 用户名',en:'GitHub username'},
+  sl_repo:{zh:'Repo 名称',en:'Repo name'},
+  sl_path:{zh:'数据文件路径',en:'Data file path'},
+  saveSettings:{zh:'保存配置',en:'Save config'},
+  testConn:{zh:'测试连接',en:'Test connection'},
+  reload:{zh:'重新拉取',en:'Reload'},
+  // authors/detectives forms
+  al_name:{zh:'作者姓名 *',en:'Author name *'},
+  ap_name:{zh:'作者名…',en:'Author name…'},
+  al_style:{zh:'风格碎片（从作品中提炼的特质）',en:'Style notes (traits drawn from works)'},
+  ap_style:{zh:'从书库里的作品中，你观察到的这位作者的写作特质、惯用手法、叙事倾向…',en:'Writing traits, habits, narrative tendencies you observed across this author’s works…'},
+  ap_notes:{zh:'个人备注…',en:'Personal notes…'},
+  dl_name:{zh:'侦探姓名 *',en:'Detective name *'},
+  dp_name:{zh:'侦探名…',en:'Detective name…'},
+  dl_author:{zh:'所属作者',en:'Author'},
+  dl_trait:{zh:'方法论 / 特质（仅基于书库中已有作品）',en:'Method / traits (based on library works only)'},
+  dp_trait:{zh:'这个侦探在书库里的作品中展现出的推理方式、性格特质、标志性手法…',en:'Reasoning style, character traits, signature methods this detective shows across the library works…'},
+  // case logic
+  cll_work:{zh:'出处书名 *',en:'Source book *'},
+  clp_work:{zh:'小说名…',en:'Novel title…'},
+  cll_case:{zh:'案件名称',en:'Case name'},
+  clp_case:{zh:'第几案、案件名…',en:'Case number/name…'},
+  cll_steps:{zh:'推理步骤 *（每行一步，最后一行为结论）',en:'Reasoning steps * (one per line, last line = conclusion)'},
+  clh_steps:{zh:'最后一行或以「→」开头的行将高亮显示为结论。',en:'The last line, or a line starting with “→”, is highlighted as the conclusion.'},
+  clp_notes:{zh:'个人备注、疑问…',en:'Personal notes, questions…'},
+  pasteCLHint:{zh:'把下面这段 prompt 复制到 Claude 新对话：',en:'Copy this prompt into a new Claude chat:'},
+  parseResult:{zh:T('解析结果','Parse result'),en:'Parse result'},
+  confirmImport:{zh:T('确认导入','Confirm import'),en:'Confirm import'},
+  mergePreviewBtn:{zh:'预览合并结果',en:'Preview merge'},
+  mergedEntryLabel:{zh:'合并后的条目：',en:'Merged entry:'},
+  confirmMergeBtn:{zh:'确认合并并删除原条目',en:'Confirm merge & delete originals'},
+  backEdit:{zh:'← 返回修改',en:'← Back to edit'},
+  hdrCL:{zh:'NEW · 推理逻辑',en:'NEW · Case Logic'},
+  hdrCLPrompt:{zh:'推理逻辑 · 生成 Prompt',en:'Case Logic · Build Prompt'},
+  hdrTrickPrompt:{zh:'增补条目 · 生成 Prompt',en:'Add Entries · Build Prompt'},
+  confirmApply:{zh:'确认应用',en:'Confirm apply'},
+  ph_fTitle:{zh:'诡计 / 概念名称…',en:'Trick / concept name…'},
+  langBtn:{zh:'EN',en:'中'},
+};
+const Ls = k => (I18N[k] || {zh:k,en:k})[lang];
+function applyStatic() {
+  document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+  document.title = lang === 'en' ? 'Mystery Trick Archive' : '诡计逻辑库 · Mystery Trick Archive';
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = Ls(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = Ls(el.dataset.i18nPh); });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = Ls(el.dataset.i18nTitle); });
+  const lb = document.getElementById('langBtn'); if (lb) lb.textContent = Ls('langBtn');
+}
+function toggleLang() {
+  lang = lang === 'en' ? 'zh' : 'en';
+  try { localStorage.setItem('pha-lang', lang); } catch {}
+  applyStatic();
+  const active = document.querySelector('.main-tab.active')?.dataset.panel;
+  renderTricks();
+  if (active === 'books') renderBooks();
+  if (active === 'authors') renderAuthors();
+  if (active === 'detectives') renderDetectives();
+}
 
 // ══════════════════════════════════════════════
 //  STATE
@@ -818,13 +960,13 @@ function setSyncStatus(type, msg) {
 
 async function ghLoad() {
   if (!cfg.token || !cfg.owner || !cfg.repo) return false;
-  setSyncStatus('loading', '同步中…');
+  setSyncStatus('loading', T('同步中…','Syncing…'));
   try {
     const res = await fetch(ghUrl(), { headers: ghHeaders() });
     if (res.status === 404) {
       fileSha = null; entries = []; authors = []; detectives = []; detectiveMoves = []; caseLogics = [];
       nextId = nextAuthorId = nextDetectiveId = nextDMId = nextCLId = 1;
-      setSyncStatus('ok', '新文件'); return true;
+      setSyncStatus('ok', T('新文件','New file')); return true;
     }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
@@ -841,17 +983,17 @@ async function ghLoad() {
     nextDetectiveId = Math.max(0, ...detectives.map(d => d.id))    + 1;
     nextDMId        = Math.max(0, ...detectiveMoves.map(d => d.id), 0) + 1;
     nextCLId        = Math.max(0, ...caseLogics.map(c => c.id), 0)     + 1;
-    setSyncStatus('ok', `已同步 · ${entries.length} 条`);
+    setSyncStatus('ok', T(`已同步 · ${entries.length} 条`,`Synced · ${entries.length}`));
     return true;
-  } catch(e) { setSyncStatus('err', '同步失败: ' + e.message); return false; }
+  } catch(e) { setSyncStatus('err', T('同步失败: ','Sync failed: ') + e.message); return false; }
 }
 
 async function ghSave() {
   if (!cfg.token || !cfg.owner || !cfg.repo) {
     localStorage.setItem('mtrick_local', JSON.stringify({ entries, authors, detectives, detectiveMoves, caseLogics }));
-    setSyncStatus('err', '未配置 GitHub，已本地缓存'); return false;
+    setSyncStatus('err', T('未配置 GitHub，已本地缓存','GitHub not configured, cached locally')); return false;
   }
-  setSyncStatus('loading', '保存中…');
+  setSyncStatus('loading', T('保存中…','Saving…'));
   try {
     const content = btoa(unescape(encodeURIComponent(JSON.stringify({ entries, authors, detectives, detectiveMoves, caseLogics }, null, 2))));
     const body = { message: `update ${new Date().toISOString().slice(0,10)}`, content };
@@ -860,9 +1002,9 @@ async function ghSave() {
     if (!res.ok) { const j = await res.json().catch(()=>{}); throw new Error((j||{}).message || `HTTP ${res.status}`); }
     const json = await res.json();
     fileSha = json.content.sha;
-    setSyncStatus('ok', `已保存 · ${entries.length} 条`);
+    setSyncStatus('ok', T(`已保存 · ${entries.length} 条`,`Saved · ${entries.length}`));
     return true;
-  } catch(e) { setSyncStatus('err', '保存失败: ' + e.message); return false; }
+  } catch(e) { setSyncStatus('err', T('保存失败: ','Save failed: ') + e.message); return false; }
 }
 
 // ══════════════════════════════════════════════
@@ -882,8 +1024,8 @@ function rebuildDropdowns() {
   const whys = [...new Set(tricks.flatMap(e => (e.whyShort&&e.whyShort.length?e.whyShort:e.why)||[]))].sort();
   const hSel = document.getElementById('howFilter'), wSel = document.getElementById('whyFilter');
   const ch = hSel.value, cw = wSel.value;
-  hSel.innerHTML = '<option value="">— 全部手法 —</option>' + hows.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('');
-  wSel.innerHTML = '<option value="">— 全部目的 —</option>' + whys.map(w=>`<option value="${esc(w)}">${esc(w)}</option>`).join('');
+  hSel.innerHTML = `<option value="">${T('— 全部手法 —','— All How —')}</option>` + hows.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('');
+  wSel.innerHTML = `<option value="">${T('— 全部目的 —','— All Why —')}</option>` + whys.map(w=>`<option value="${esc(w)}">${esc(w)}</option>`).join('');
   if (hows.includes(ch)) hSel.value = ch;
   if (whys.includes(cw)) wSel.value = cw;
 }
@@ -921,11 +1063,11 @@ function renderTricks() {
         <button class="card-btn" onclick="event.stopPropagation();openEdit(${e.id})">✎</button>
         <button class="card-btn" onclick="event.stopPropagation();delEntry(${e.id})">✕</button>
       </div>
-      <span class="card-cat ${CAT_CLASS[e.cat]||'cat-trick'}">${CAT_LABEL[e.cat]||esc(e.cat)}</span>
-      ${e.public?'<span style="position:absolute;top:8px;right:8px;font-size:9px;font-family:\'Special Elite\',monospace;color:var(--green);letter-spacing:1px;opacity:.8">✦ 公开</span>':''}
+      <span class="card-cat ${CAT_CLASS[e.cat]||'cat-trick'}">${catL(e.cat)}</span>
+      ${e.public?`<span style="position:absolute;top:8px;right:8px;font-size:9px;font-family:'Special Elite',monospace;color:var(--green);letter-spacing:1px;opacity:.8">✦ ${T('公开','Public')}</span>`:''}
       <div class="card-title">${esc(e.title)}</div>
       ${srcLine?`<div class="card-sources">${srcLine}</div>`:''}
-      ${e.cat==='detective-move'&&(e.detectiveName||[]).length?`<div class="card-sources" style="color:var(--green)">侦探：${esc((Array.isArray(e.detectiveName)?e.detectiveName:[e.detectiveName]).filter(Boolean).join('、'))}</div>`:''}
+      ${e.cat==='detective-move'&&(e.detectiveName||[]).length?`<div class="card-sources" style="color:var(--green)">${T('侦探：','Detective: ')}${esc((Array.isArray(e.detectiveName)?e.detectiveName:[e.detectiveName]).filter(Boolean).join('、'))}</div>`:''}
       <div class="card-summary">${esc(e.summary)}</div>
       <div class="card-meta">
         <div class="card-pills">${e.cat==='trick'?(e.keywords||[]).slice(0,3).map(k=>`<span class="pill">${esc(k)}</span>`).join(''):''}</div>
@@ -951,7 +1093,7 @@ function renderBooks() {
 
   const books = [...bookMap.values()].sort((a,b) => a.work.localeCompare(b.work, 'zh'));
   const list = document.getElementById('bookList'), empty = document.getElementById('booksEmpty');
-  document.getElementById('booksHeaderTitle').textContent = `LIBRARY · 书库索引 · ${books.length} 本`;
+  document.getElementById('booksHeaderTitle').textContent = T(`LIBRARY · 书库索引 · ${books.length} 本`,`LIBRARY · ${books.length} books`);
 
   if (!books.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
@@ -960,7 +1102,7 @@ function renderBooks() {
     const counts = { trick: 0, concept: 0, narrative: 0, 'detective-move': 0 };
     b.entries.forEach(e => { if (e.cat in counts) counts[e.cat]++; });
     const badges = Object.entries(counts).filter(([,n])=>n>0).map(([cat,n])=>
-      `<span class="book-count-badge bc-${cat.replace('-','_')}">${CAT_LABEL[cat]} ${n}</span>`).join('');
+      `<span class="book-count-badge bc-${cat.replace('-','_')}">${catL(cat)} ${n}</span>`).join('');
 
     const seen = new Set();
     const rows = b.entries.filter(e => {
@@ -968,7 +1110,7 @@ function renderBooks() {
       seen.add(e.title); return true;
     }).map(e => `
       <div class="book-entry-row">
-        <span class="be-cat ${CAT_CLASS[e.cat]||'cat-trick'}">${CAT_LABEL[e.cat]||''}</span>
+        <span class="be-cat ${CAT_CLASS[e.cat]||'cat-trick'}">${catL(e.cat)}</span>
         <div style="flex:1">
           <div class="be-title" onclick="openDetail(${e.id})">${esc(e.title)}</div>
           <div class="be-summary">${esc(e.summary)}</div>
@@ -980,7 +1122,7 @@ function renderBooks() {
     const logicRows = bkLogics.map(c => `
       <div style="margin-top:10px;border-top:1px dashed var(--paper-darker);padding-top:10px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-          <span style="font-family:'Special Elite',monospace;font-size:9px;letter-spacing:2px;color:var(--ink-lighter)">${esc(c.case_||'推理逻辑')}</span>
+          <span style="font-family:'Special Elite',monospace;font-size:9px;letter-spacing:2px;color:var(--ink-lighter)">${esc(c.case_||T('推理逻辑','Case Logic'))}</span>
           <div style="display:flex;gap:4px">
             <button class="card-btn" onclick="openEditCL(${c.id})">✎</button>
             <button class="card-btn" onclick="delCL(${c.id});renderBooks()">✕</button>
@@ -993,10 +1135,10 @@ function renderBooks() {
     const logicSection = `
       <div style="margin-top:12px;border-top:1px solid var(--paper-darker);padding-top:10px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <span style="font-family:'Special Elite',monospace;font-size:9px;letter-spacing:2px;color:var(--ink-lighter)">推理逻辑</span>
+          <span style="font-family:'Special Elite',monospace;font-size:9px;letter-spacing:2px;color:var(--ink-lighter)">${T('推理逻辑','Case Logic')}</span>
           <button class="card-btn" style="width:auto;padding:2px 8px;font-size:11px" onclick="openAddCLForBook('${esc(b.work)}','${esc(b.author||'')}')">＋</button>
         </div>
-        ${logicRows || '<div style="font-size:12px;color:var(--ink-lighter);font-style:italic">暂无</div>'}
+        ${logicRows || `<div style="font-size:12px;color:var(--ink-lighter);font-style:italic">${T('暂无','None')}</div>`}
       </div>`;
 
     return `
@@ -1008,7 +1150,7 @@ function renderBooks() {
           ${b.author?`<div class="book-author">${esc(b.author)}</div>`:''}
         </div>
         <div class="book-counts">${badges}</div>
-        <button class="card-btn" style="opacity:.6;font-size:10px;padding:2px 7px;width:auto;white-space:nowrap" title="增补条目" onclick="event.stopPropagation();openAddTrickForBook('${esc(b.work)}','${esc(b.author||'')}')">＋ 条目</button>
+        <button class="card-btn" style="opacity:.6;font-size:10px;padding:2px 7px;width:auto;white-space:nowrap" title="${T('增补条目','Add entries')}" onclick="event.stopPropagation();openAddTrickForBook('${esc(b.work)}','${esc(b.author||'')}')">＋ ${T('条目','Entry')}</button>
       </div>
       <div class="book-entries">${rows}${logicSection}</div>
     </div>`;
@@ -1043,7 +1185,7 @@ function openAddCLForBook(work, author) {
     fence
   ].join('\n');
 
-  document.getElementById('clPromptModalTitle').textContent = `《${work}》· 推理逻辑`;
+  document.getElementById('clPromptModalTitle').textContent = `《${work}》${T(' · 推理逻辑',' · Case Logic')}`;
   document.getElementById('clPromptBox').textContent = prompt;
   document.getElementById('clPromptPasteArea').value = '';
   document.getElementById('clPromptParseErr').style.display = 'none';
@@ -1082,21 +1224,21 @@ function openDetail(id) {
     </div>`).join('');
 
   document.getElementById('detailBody').innerHTML = `
-    <div class="d-cat"><span class="card-cat ${CAT_CLASS[e.cat]||'cat-trick'}">${CAT_LABEL[e.cat]||esc(e.cat)}</span></div>
+    <div class="d-cat"><span class="card-cat ${CAT_CLASS[e.cat]||'cat-trick'}">${catL(e.cat)}</span></div>
     <div class="d-title">${esc(e.title)}</div>
-    ${e.cat==='detective-move'&&(e.detectiveName||[]).length?`<div class="d-source-line">侦探：${esc((Array.isArray(e.detectiveName)?e.detectiveName:[e.detectiveName]).filter(Boolean).join('、'))}</div>`:''}
+    ${e.cat==='detective-move'&&(e.detectiveName||[]).length?`<div class="d-source-line">${T('侦探：','Detective: ')}${esc((Array.isArray(e.detectiveName)?e.detectiveName:[e.detectiveName]).filter(Boolean).join('、'))}</div>`:''}
     ${hPills||wPills?`<div class="d-pills">${hPills}${wPills}</div>`:''}
     <div class="d-hr"></div>
-    <div class="d-label">简述</div><div class="d-text">${esc(e.summary)}</div>
-    ${e.detail?`<div class="d-hr"></div><div class="d-label">详细分析</div><div class="d-text">${esc(e.detail)}</div>`:''}
-    ${srcHtml?`<div class="d-hr"></div><div class="d-label">书中运用示例</div><div class="d-examples">${srcHtml}</div>`:''}
-    ${e.cat==='trick'&&(e.keywords||[]).length?`<div class="d-hr"></div><div class="d-label">关键词</div><div class="d-keywords">${e.keywords.map(k=>`<span class="d-keyword">${esc(k)}</span>`).join('')}</div>`:''}
-    ${e.notes?`<div class="d-hr"></div><div class="d-label">备注</div><div class="d-text" style="font-style:italic">${esc(e.notes)}</div>`:''}
-    ${e.date?`<div class="d-hr"></div><div class="d-label">归档日期</div><div class="d-text" style="font-size:12px">${esc(e.date.replace(/-/g,'.'))}</div>`:''}
+    <div class="d-label">${T('简述','Summary')}</div><div class="d-text">${esc(e.summary)}</div>
+    ${e.detail?`<div class="d-hr"></div><div class="d-label">${T('详细分析','Detailed analysis')}</div><div class="d-text">${esc(e.detail)}</div>`:''}
+    ${srcHtml?`<div class="d-hr"></div><div class="d-label">${T('书中运用示例','Examples in the book')}</div><div class="d-examples">${srcHtml}</div>`:''}
+    ${e.cat==='trick'&&(e.keywords||[]).length?`<div class="d-hr"></div><div class="d-label">${T('关键词','Keywords')}</div><div class="d-keywords">${e.keywords.map(k=>`<span class="d-keyword">${esc(k)}</span>`).join('')}</div>`:''}
+    ${e.notes?`<div class="d-hr"></div><div class="d-label">${T('备注','Notes')}</div><div class="d-text" style="font-style:italic">${esc(e.notes)}</div>`:''}
+    ${e.date?`<div class="d-hr"></div><div class="d-label">${T('归档日期','Archived')}</div><div class="d-text" style="font-size:12px">${esc(e.date.replace(/-/g,'.'))}</div>`:''}
     <div class="d-hr"></div>
     <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:'Special Elite',monospace;font-size:11px;letter-spacing:1.5px;color:var(--ink-lighter)">
       <input type="checkbox" id="dPublicCheck" ${e.public?'checked':''} onchange="togglePublic(${e.id},this.checked)" />
-      PUBLIC · 公开展示
+      ${T('PUBLIC · 公开展示','PUBLIC · Show publicly')}
     </label>
   `;
   openModal('detailModal');
@@ -1108,7 +1250,7 @@ function openDetail(id) {
 function makeTagInput(wrapId, tagsArr) {
   const wrap = document.getElementById(wrapId);
   const input = document.createElement('input');
-  input.className = 'tag-bare-input'; input.placeholder = '回车添加…';
+  input.className = 'tag-bare-input'; input.placeholder = T('回车添加…','Enter to add…');
   function refresh() {
     wrap.querySelectorAll('.tag-chip').forEach(c=>c.remove());
     tagsArr.forEach((tag,i) => {
@@ -1139,16 +1281,16 @@ function renderSourceList() {
       <button class="source-remove" onclick="removeSource(${i})">✕</button>
       <div class="source-item-row">
         <div>
-          <label class="f-label" style="margin-bottom:3px">书名</label>
-          <input class="f-input" style="padding:5px 8px" value="${esc(s.work)}" oninput="formSources[${i}].work=this.value" placeholder="书名…" />
+          <label class="f-label" style="margin-bottom:3px">${T('书名','Book')}</label>
+          <input class="f-input" style="padding:5px 8px" value="${esc(s.work)}" oninput="formSources[${i}].work=this.value" placeholder="${T('书名…','Book title…')}" />
         </div>
         <div>
-          <label class="f-label" style="margin-bottom:3px">作者</label>
-          <input class="f-input" style="padding:5px 8px" value="${esc(s.author)}" oninput="formSources[${i}].author=this.value" placeholder="作者…" />
+          <label class="f-label" style="margin-bottom:3px">${T('作者','Author')}</label>
+          <input class="f-input" style="padding:5px 8px" value="${esc(s.author)}" oninput="formSources[${i}].author=this.value" placeholder="${T('作者…','Author…')}" />
         </div>
       </div>
-      <label class="f-label" style="margin-bottom:3px">书中运用示例</label>
-      <textarea class="f-textarea" style="min-height:65px" oninput="formSources[${i}].example=this.value" placeholder="概述书中具体运用方式…">${esc(s.example)}</textarea>
+      <label class="f-label" style="margin-bottom:3px">${T('书中运用示例','Example in the book')}</label>
+      <textarea class="f-textarea" style="min-height:65px" oninput="formSources[${i}].example=this.value" placeholder="${T('概述书中具体运用方式…','Describe how it’s used in the book…')}">${esc(s.example)}</textarea>
     </div>`).join('');
 }
 
@@ -1173,7 +1315,7 @@ function updateHowWhyVisibility() {
 
 function openAdd() {
   editingId = null;
-  document.getElementById('formTitle').textContent = 'NEW ENTRY · 新增条目';
+  document.getElementById('formTitle').textContent = T('NEW ENTRY · 新增条目','NEW ENTRY');
   ['fTitle','fSummary','fDetail','fNotes'].forEach(id=>document.getElementById(id).value='');
   formDetectiveNameTags=[];
   document.getElementById('fCat').value = 'trick';
@@ -1192,7 +1334,7 @@ function openAdd() {
 function openEdit(id) {
   const e = entries.find(x=>x.id===id); if(!e) return;
   editingId = id;
-  document.getElementById('formTitle').textContent = 'EDIT ENTRY · 编辑条目';
+  document.getElementById('formTitle').textContent = T('EDIT ENTRY · 编辑条目','EDIT ENTRY');
   document.getElementById('fTitle').value   = e.title;
   document.getElementById('fCat').value     = e.cat||'trick';
   document.getElementById('fSummary').value = e.summary;
@@ -1214,8 +1356,8 @@ function openEdit(id) {
 
 async function submitForm() {
   const title=document.getElementById('fTitle').value.trim(), summary=document.getElementById('fSummary').value.trim();
-  if (!title||!summary) { alert('请填写名称和简述'); return; }
-  const btn=document.getElementById('btnSubmit'); btn.textContent='保存中…'; btn.disabled=true;
+  if (!title||!summary) { alert(T('请填写名称和简述','Please fill in title and summary')); return; }
+  const btn=document.getElementById('btnSubmit'); btn.textContent=T('保存中…','Saving…'); btn.disabled=true;
   const cat = document.getElementById('fCat').value;
   const entry = {
     id: editingId||nextId++, cat,
@@ -1231,14 +1373,14 @@ async function submitForm() {
   };
   if (editingId) { const i=entries.findIndex(e=>e.id===editingId); entries[i]=entry; }
   else entries.unshift(entry);
-  const ok=await ghSave(); btn.textContent='归档 · ARCHIVE'; btn.disabled=false;
-  const msg=document.getElementById('saveMsg'); msg.style.color=ok?'#6aaa5a':'#c44'; msg.textContent=ok?'✓ 已保存':'⚠ 本地缓存';
+  const ok=await ghSave(); btn.textContent=T('归档 · ARCHIVE','Archive'); btn.disabled=false;
+  const msg=document.getElementById('saveMsg'); msg.style.color=ok?'#6aaa5a':'#c44'; msg.textContent=ok?T('✓ 已保存','✓ Saved'):T('⚠ 本地缓存','⚠ Cached locally');
   renderTricks(); renderBooks();
   if (ok) setTimeout(()=>closeModal('formModal'),800);
 }
 
 async function delEntry(id) {
-  if (!confirm('确认删除这条条目？')) return;
+  if (!confirm(T('确认删除这条条目？','Delete this entry?'))) return;
   entries=entries.filter(e=>e.id!==id); await ghSave(); renderTricks(); renderBooks();
 }
 
@@ -1303,7 +1445,7 @@ document.getElementById('fCat').addEventListener('change', updateHowWhyVisibilit
 document.getElementById('btnFillPrompt').addEventListener('click', () => {
   const title = document.getElementById('fTitle').value.trim();
   const cat   = document.getElementById('fCat').value;
-  if (!title) { alert('请先填写条目名称'); return; }
+  if (!title) { alert(T('请先填写条目名称','Please enter a title first')); return; }
   const wrap = document.getElementById('fillPromptWrap');
   document.getElementById('fillPromptBox').textContent = buildFillPrompt(title, cat);
   document.getElementById('fillPasteArea').value = '';
@@ -1314,7 +1456,7 @@ document.getElementById('btnFillPrompt').addEventListener('click', () => {
 document.getElementById('btnCopyFillPrompt').addEventListener('click', () => {
   navigator.clipboard.writeText(document.getElementById('fillPromptBox').textContent).then(() => {
     const el = document.getElementById('fillCopyConfirm');
-    el.textContent = '✓ 已复制'; el.style.opacity = '1';
+    el.textContent = T('✓ 已复制','✓ Copied'); el.style.opacity = '1';
     setTimeout(() => { el.style.opacity = '0'; }, 2000);
   });
 });
@@ -1326,7 +1468,7 @@ document.getElementById('btnApplyFill').addEventListener('click', () => {
   let result = parseJson(raw);
   if (Array.isArray(result)) result = result[0] || null;
   if (!result || typeof result !== 'object') {
-    errEl.textContent = '✕ 未找到可解析的 JSON';
+    errEl.textContent = T('✕ 未找到可解析的 JSON','✕ No parseable JSON found');
     errEl.style.display = 'block';
     return;
   }
@@ -1355,12 +1497,12 @@ function openImport() {
 function showImportStep(n) {
   document.getElementById('importStep1').classList.toggle('active', n===1);
   document.getElementById('importStep2').classList.toggle('active', n===2);
-  document.getElementById('importTitle').textContent = n===1 ? 'IMPORT · 从书名导入' : 'IMPORT · 预览并选择';
+  document.getElementById('importTitle').textContent = n===1 ? T('IMPORT · 从书名导入','IMPORT · By book') : T('IMPORT · 预览并选择','IMPORT · Preview & select');
 }
 
 document.getElementById('btnGenPrompt').addEventListener('click', () => {
   const bookName = document.getElementById('importBookName').value.trim();
-  if (!bookName) { alert('请输入书名'); return; }
+  if (!bookName) { alert(T('请输入书名','Please enter a book title')); return; }
   const author = document.getElementById('importAuthor').value.trim();
   const prompt = buildPrompt(bookName, author);
   document.getElementById('promptBox').textContent = prompt;
@@ -1373,7 +1515,7 @@ document.getElementById('btnCopyPrompt').addEventListener('click', () => {
   const text = document.getElementById('promptBox').textContent;
   navigator.clipboard.writeText(text).then(() => {
     const el = document.getElementById('copyConfirm');
-    el.textContent = '✓ 已复制'; el.style.opacity = '1';
+    el.textContent = T('✓ 已复制','✓ Copied'); el.style.opacity = '1';
     setTimeout(() => { el.style.opacity = '0'; }, 2000);
   });
 });
@@ -1448,7 +1590,7 @@ function findSimilarEntry(title) {
 function updateSelectedCount() {
   const total = parsedImports.length;
   const selected = document.querySelectorAll('.preview-check:checked').length;
-  document.getElementById('selectedCount').textContent = `${selected} / ${total} 已选`;
+  document.getElementById('selectedCount').textContent = T(`${selected} / ${total} 已选`,`${selected} / ${total} selected`);
 }
 
 function togglePreview(i) {
@@ -1460,12 +1602,12 @@ function togglePreview(i) {
 function renderPreview(items) {
   const bookName = document.getElementById('importBookName').value.trim();
   document.getElementById('importNote').textContent =
-    `从《${bookName}》解析到 ${items.length} 条，勾选要导入的条目：`;
+    T(`从《${bookName}》解析到 ${items.length} 条，勾选要导入的条目：`,`Parsed ${items.length} entries from “${bookName}”. Check the ones to import:`);
 
   document.getElementById('previewList').innerHTML = items.map((e,i) => {
     const similar = findSimilarEntry(e.title);
     const similarWarn = similar
-      ? `<div style="font-size:11px;color:var(--gold);margin-top:4px;font-family:'Special Elite',monospace;letter-spacing:.5px">⚠ 疑似与已有条目重复：「${esc(similar.entry.title)}」</div>`
+      ? `<div style="font-size:11px;color:var(--gold);margin-top:4px;font-family:'Special Elite',monospace;letter-spacing:.5px">${T('⚠ 疑似与已有条目重复：「','⚠ Possible duplicate of: “')}${esc(similar.entry.title)}${T('」','”')}</div>`
       : '';
     return `
     <div class="preview-item selected" id="preview-${i}">
@@ -1474,10 +1616,10 @@ function renderPreview(items) {
         <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;flex-wrap:wrap">
           <div class="preview-title">${esc(e.title)}</div>
           <select class="filter-select" style="font-size:11px;padding:2px 22px 2px 7px;box-shadow:none" onchange="parsedImports[${i}].cat=this.value">
-            <option value="trick"     ${e.cat==='trick'    ?'selected':''}>诡计</option>
-            <option value="concept"   ${e.cat==='concept'  ?'selected':''}>概念</option>
-            <option value="narrative" ${e.cat==='narrative'?'selected':''}>叙述手法</option>
-            <option value="detective-move" ${e.cat==='detective-move'?'selected':''}>侦探做法</option>
+            <option value="trick"     ${e.cat==='trick'    ?'selected':''}>${catL('trick')}</option>
+            <option value="concept"   ${e.cat==='concept'  ?'selected':''}>${catL('concept')}</option>
+            <option value="narrative" ${e.cat==='narrative'?'selected':''}>${catL('narrative')}</option>
+            <option value="detective-move" ${e.cat==='detective-move'?'selected':''}>${catL('detective-move')}</option>
           </select>
         </div>
         <div class="preview-meta">${[...(e.how||[]),...(e.why||[])].slice(0,4).join(' · ')}</div>
@@ -1503,9 +1645,9 @@ document.getElementById('btnSelectNone').addEventListener('click', () => {
 // ══════════════════════════════════════════════
 document.getElementById('btnDoImport').addEventListener('click', async () => {
   const selected = parsedImports.filter((_,i) => document.getElementById('pcheck-'+i).checked);
-  if (!selected.length) { alert('请至少选择一条'); return; }
+  if (!selected.length) { alert(T('请至少选择一条','Please select at least one')); return; }
 
-  const btn = document.getElementById('btnDoImport'); btn.disabled=true; btn.textContent='保存中…';
+  const btn = document.getElementById('btnDoImport'); btn.disabled=true; btn.textContent=T('保存中…','Saving…');
 
   // Import entries — always create new, let user decide to merge manually
   selected.forEach(e => {
@@ -1556,10 +1698,10 @@ document.getElementById('btnDoImport').addEventListener('click', async () => {
 
   // Single save for everything
   const ok = await ghSave();
-  btn.disabled=false; btn.textContent='导入选中条目';
+  btn.disabled=false; btn.textContent=T('导入选中条目','Import selected');
   const msg = document.getElementById('importSaveMsg');
   msg.style.color = ok?'#6aaa5a':'#c44';
-  msg.textContent = ok ? `✓ 已导入 ${selected.length} 条` : '⚠ 本地缓存';
+  msg.textContent = ok ? T(`✓ 已导入 ${selected.length} 条`,`✓ Imported ${selected.length}`) : T('⚠ 本地缓存','⚠ Cached locally');
   renderTricks(); renderBooks();
   if (ok) setTimeout(()=>closeModal('importModal'), 1000);
 });
@@ -1579,15 +1721,15 @@ function openSettings() {
 }
 function saveSettings() {
   cfg={token:document.getElementById('sToken').value.trim(),owner:document.getElementById('sOwner').value.trim(),repo:document.getElementById('sRepo').value.trim(),path:document.getElementById('sPath').value.trim()||'data.json'};
-  saveCfg(); const el=document.getElementById('settingsMsg'); el.style.color='#6aaa5a'; el.textContent='✓ 已保存';
+  saveCfg(); const el=document.getElementById('settingsMsg'); el.style.color='#6aaa5a'; el.textContent=T('✓ 已保存','✓ Saved');
 }
 async function testConn() {
-  saveSettings(); const el=document.getElementById('settingsMsg'); el.style.color='var(--ink-lighter)'; el.textContent='连接中…';
+  saveSettings(); const el=document.getElementById('settingsMsg'); el.style.color='var(--ink-lighter)'; el.textContent=T('连接中…','Connecting…');
   try {
     const res=await fetch(ghUrl(),{headers:ghHeaders()});
-    if (res.ok||res.status===404) { el.style.color='#6aaa5a'; el.textContent=res.status===404?'✓ 连接成功（文件将在首次保存时创建）':'✓ 连接成功，文件已找到'; }
-    else { const j=await res.json().catch(()=>{}); el.style.color='#c44'; el.textContent=`✕ ${res.status}: ${(j||{}).message||'错误'}`; }
-  } catch(e) { el.style.color='#c44'; el.textContent='✕ 网络错误: '+e.message; }
+    if (res.ok||res.status===404) { el.style.color='#6aaa5a'; el.textContent=res.status===404?T('✓ 连接成功（文件将在首次保存时创建）','✓ Connected (file will be created on first save)'):T('✓ 连接成功，文件已找到','✓ Connected, file found'); }
+    else { const j=await res.json().catch(()=>{}); el.style.color='#c44'; el.textContent=`✕ ${res.status}: ${(j||{}).message||T('错误','Error')}`; }
+  } catch(e) { el.style.color='#c44'; el.textContent=T('✕ 网络错误: ','✕ Network error: ')+e.message; }
 }
 
 // ══════════════════════════════════════════════
@@ -1641,6 +1783,7 @@ document.getElementById('whyFilter').addEventListener('change', e=>{ filterWhy=e
 //  INIT
 // ══════════════════════════════════════════════
 (async()=>{
+  applyStatic();
   const ok = await ghLoad();
   if (!ok) {
     try {
@@ -1652,7 +1795,7 @@ document.getElementById('whyFilter').addEventListener('change', e=>{ filterWhy=e
         detectiveMoves=local.detectiveMoves||[]; nextDMId=Math.max(0,...(local.detectiveMoves||[]).map(d=>d.id),0)+1;
         caseLogics=local.caseLogics||[]; nextCLId=Math.max(0,...(local.caseLogics||[]).map(c=>c.id),0)+1;
       }
-      setSyncStatus('err', cfg.token?'同步失败，显示本地缓存':'请在 ⚙ 中配置 GitHub');
+      setSyncStatus('err', cfg.token?T('同步失败，显示本地缓存','Sync failed, showing local cache'):T('请在 ⚙ 中配置 GitHub','Configure GitHub in ⚙'));
     } catch {}
   }
   // Migrate: strip keywords from non-trick entries
@@ -1701,7 +1844,7 @@ let editingAuthorId = null, editingDetectiveId = null;
 function renderAuthors() {
   const list = document.getElementById('authorList');
   const empty = document.getElementById('authorsEmpty');
-  document.getElementById('authorsTitle').textContent = 'AUTHORS · 作者集 · '+authors.length+' 位';
+  document.getElementById('authorsTitle').textContent = T('AUTHORS · 作者集 · '+authors.length+' 位','AUTHORS · '+authors.length);
   if (!authors.length) { list.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
 
@@ -1712,9 +1855,9 @@ function renderAuthors() {
     const dets = detectives.filter(d=>d.authorName===a.name);
     const bookBadges = books.map(b=>{const t=b.replace(/^《|》$/g,'');return '<span class="coll-badge cb-book">《'+esc(t)+'》</span>';}).join('');
     const detBadges  = dets.map(d=>'<span class="coll-badge cb-det">'+esc(d.name)+'</span>').join('');
-    const bookLinks = books.length ? '<div class="coll-section-label">书库作品</div><div class="coll-links">'+
+    const bookLinks = books.length ? '<div class="coll-section-label">'+T('书库作品','Library works')+'</div><div class="coll-links">'+
       books.map(b=>{const t=b.replace(/^《|》$/g,'');return '<span class="coll-link" onclick="switchToBooks(this.dataset.b)" data-b="'+esc(t)+'">'+esc(t)+'</span>';}).join('')+'</div>' : '';
-    const detLinks = dets.length ? '<div class="coll-section-label">旗下侦探</div><div class="coll-links">'+
+    const detLinks = dets.length ? '<div class="coll-section-label">'+T('旗下侦探','Detectives')+'</div><div class="coll-links">'+
       dets.map(d=>'<span class="coll-link coll-link-gold" onclick="switchToDetective('+d.id+')">'+esc(d.name)+'</span>').join('')+'</div>' : '';
 
     return '<div class="coll-item" id="author-item-'+ai+'">' +
@@ -1730,9 +1873,9 @@ function renderAuthors() {
         '</div>' +
       '</div>' +
       '<div class="coll-body">' +
-        (a.style ? '<div class="coll-section-label">风格碎片</div><div class="coll-text">'+esc(a.style)+'</div>' : '') +
+        (a.style ? '<div class="coll-section-label">'+T('风格碎片','Style notes')+'</div><div class="coll-text">'+esc(a.style)+'</div>' : '') +
         bookLinks + detLinks +
-        (a.notes ? '<div class="coll-section-label" style="margin-top:8px">备注</div><div class="coll-text" style="font-style:italic">'+esc(a.notes)+'</div>' : '') +
+        (a.notes ? '<div class="coll-section-label" style="margin-top:8px">'+T('备注','Notes')+'</div><div class="coll-text" style="font-style:italic">'+esc(a.notes)+'</div>' : '') +
       '</div>' +
     '</div>';
   }).join('');
@@ -1742,7 +1885,7 @@ function renderAuthors() {
 function renderDetectives() {
   const list = document.getElementById('detectiveList');
   const empty = document.getElementById('detectivesEmpty');
-  document.getElementById('detectivesTitle').textContent = 'DETECTIVES · 侦探集 · '+detectives.length+' 位';
+  document.getElementById('detectivesTitle').textContent = T('DETECTIVES · 侦探集 · '+detectives.length+' 位','DETECTIVES · '+detectives.length);
   if (!detectives.length) { list.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
 
@@ -1755,9 +1898,9 @@ function renderDetectives() {
     )];
     const bookBadges = books.map(b=>{const t=b.replace(/^《|》$/g,'');return '<span class="coll-badge cb-book">《'+esc(t)+'》</span>';}).join('');
     const authorBadge = d.authorName ? '<span class="coll-badge" style="color:var(--ink-lighter);border-color:var(--ink-lighter);background:rgba(0,0,0,0.05)">'+esc(d.authorName)+'</span>' : '';
-    const bookLinks = books.length ? '<div class="coll-section-label">出现作品（书库）</div><div class="coll-links">'+
+    const bookLinks = books.length ? '<div class="coll-section-label">'+T('出现作品（书库）','Appears in (library)')+'</div><div class="coll-links">'+
       books.map(b=>{const t=b.replace(/^《|》$/g,'');return '<span class="coll-link" onclick="switchToBooks(this.dataset.b)" data-b="'+esc(t)+'">'+esc(t)+'</span>';}).join('')+'</div>' : '';
-    const authorLink = d.authorName ? '<div class="coll-section-label" style="margin-top:8px">所属作者</div><div class="coll-links"><span class="coll-link coll-link-gold" onclick="switchToAuthor(this.dataset.a)" data-a="'+esc(d.authorName)+'">'+esc(d.authorName)+'</span></div>' : '';
+    const authorLink = d.authorName ? '<div class="coll-section-label" style="margin-top:8px">'+T('所属作者','Author')+'</div><div class="coll-links"><span class="coll-link coll-link-gold" onclick="switchToAuthor(this.dataset.a)" data-a="'+esc(d.authorName)+'">'+esc(d.authorName)+'</span></div>' : '';
 
     return '<div class="coll-item" id="detective-item-'+di+'">' +
       '<div class="coll-header" onclick="toggleColl(this.parentElement.id)">' +
@@ -1772,9 +1915,9 @@ function renderDetectives() {
         '</div>' +
       '</div>' +
       '<div class="coll-body">' +
-        (d.trait ? '<div class="coll-section-label">方法论 / 特质</div><div class="coll-text">'+esc(d.trait)+'</div>' : '') +
+        (d.trait ? '<div class="coll-section-label">'+T('方法论 / 特质','Method / traits')+'</div><div class="coll-text">'+esc(d.trait)+'</div>' : '') +
         bookLinks + authorLink +
-        (d.notes ? '<div class="coll-section-label" style="margin-top:8px">备注</div><div class="coll-text" style="font-style:italic">'+esc(d.notes)+'</div>' : '') +
+        (d.notes ? '<div class="coll-section-label" style="margin-top:8px">'+T('备注','Notes')+'</div><div class="coll-text" style="font-style:italic">'+esc(d.notes)+'</div>' : '') +
       '</div>' +
     '</div>';
   }).join('');
@@ -1842,7 +1985,7 @@ function switchToDetective(id) {
 // ══════════════════════════════════════════════
 function openAddAuthor() {
   editingAuthorId=null;
-  document.getElementById('authorModalTitle').textContent='NEW AUTHOR · 新增作者';
+  document.getElementById('authorModalTitle').textContent=T('NEW AUTHOR · 新增作者','NEW AUTHOR');
   ['aName','aStyle','aNotes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('authorSaveMsg').textContent='';
   openModal('authorModal');
@@ -1850,7 +1993,7 @@ function openAddAuthor() {
 function openEditAuthor(id) {
   const a=authors.find(x=>x.id===id); if(!a) return;
   editingAuthorId=id;
-  document.getElementById('authorModalTitle').textContent='EDIT AUTHOR · 编辑作者';
+  document.getElementById('authorModalTitle').textContent=T('EDIT AUTHOR · 编辑作者','EDIT AUTHOR');
   document.getElementById('aName').value=a.name;
   document.getElementById('aStyle').value=a.style||'';
   document.getElementById('aNotes').value=a.notes||'';
@@ -1859,18 +2002,18 @@ function openEditAuthor(id) {
 }
 async function submitAuthor() {
   const name=document.getElementById('aName').value.trim();
-  if (!name) { alert('请填写作者姓名'); return; }
-  const btn=document.getElementById('btnSubmitAuthor'); btn.disabled=true; btn.textContent='保存中…';
+  if (!name) { alert(T('请填写作者姓名','Please enter the author name')); return; }
+  const btn=document.getElementById('btnSubmitAuthor'); btn.disabled=true; btn.textContent=T('保存中…','Saving…');
   const entry={id:editingAuthorId||nextAuthorId++, name, style:document.getElementById('aStyle').value.trim(), notes:document.getElementById('aNotes').value.trim()};
   if (editingAuthorId) { const i=authors.findIndex(a=>a.id===editingAuthorId); authors[i]=entry; }
   else authors.push(entry);
-  const ok=await ghSave(); btn.disabled=false; btn.textContent='归档 · ARCHIVE';
-  const msg=document.getElementById('authorSaveMsg'); msg.style.color=ok?'#6aaa5a':'#c44'; msg.textContent=ok?'✓ 已保存':'⚠ 本地缓存';
+  const ok=await ghSave(); btn.disabled=false; btn.textContent=T('归档 · ARCHIVE','Archive');
+  const msg=document.getElementById('authorSaveMsg'); msg.style.color=ok?'#6aaa5a':'#c44'; msg.textContent=ok?T('✓ 已保存','✓ Saved'):T('⚠ 本地缓存','⚠ Cached locally');
   renderAuthors();
   if(ok) setTimeout(()=>closeModal('authorModal'),800);
 }
 async function delAuthor(id) {
-  if(!confirm('确认删除这位作者？')) return;
+  if(!confirm(T('确认删除这位作者？','Delete this author?'))) return;
   authors=authors.filter(a=>a.id!==id); await ghSave(); renderAuthors();
 }
 
@@ -1879,7 +2022,7 @@ async function delAuthor(id) {
 // ══════════════════════════════════════════════
 function openAddDetective() {
   editingDetectiveId=null;
-  document.getElementById('detectiveModalTitle').textContent='NEW DETECTIVE · 新增侦探';
+  document.getElementById('detectiveModalTitle').textContent=T('NEW DETECTIVE · 新增侦探','NEW DETECTIVE');
   ['dName','dAuthor','dTrait','dNotes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('detectiveSaveMsg').textContent='';
   openModal('detectiveModal');
@@ -1887,7 +2030,7 @@ function openAddDetective() {
 function openEditDetective(id) {
   const d=detectives.find(x=>x.id===id); if(!d) return;
   editingDetectiveId=id;
-  document.getElementById('detectiveModalTitle').textContent='EDIT DETECTIVE · 编辑侦探';
+  document.getElementById('detectiveModalTitle').textContent=T('EDIT DETECTIVE · 编辑侦探','EDIT DETECTIVE');
   document.getElementById('dName').value=d.name;
   document.getElementById('dAuthor').value=d.authorName||'';
   document.getElementById('dTrait').value=d.trait||'';
@@ -1897,19 +2040,19 @@ function openEditDetective(id) {
 }
 async function submitDetective() {
   const name=document.getElementById('dName').value.trim();
-  if (!name) { alert('请填写侦探姓名'); return; }
-  const btn=document.getElementById('btnSubmitDetective'); btn.disabled=true; btn.textContent='保存中…';
+  if (!name) { alert(T('请填写侦探姓名','Please enter the detective name')); return; }
+  const btn=document.getElementById('btnSubmitDetective'); btn.disabled=true; btn.textContent=T('保存中…','Saving…');
   const existing = detectives.find(d=>d.id===editingDetectiveId);
   const entry={id:editingDetectiveId||nextDetectiveId++, name, authorName:document.getElementById('dAuthor').value.trim(), trait:document.getElementById('dTrait').value.trim(), notes:document.getElementById('dNotes').value.trim(), appearsIn: existing?.appearsIn||[]};
   if (editingDetectiveId) { const i=detectives.findIndex(d=>d.id===editingDetectiveId); detectives[i]=entry; }
   else detectives.push(entry);
-  const ok=await ghSave(); btn.disabled=false; btn.textContent='归档 · ARCHIVE';
-  const msg=document.getElementById('detectiveSaveMsg'); msg.style.color=ok?'#6aaa5a':'#c44'; msg.textContent=ok?'✓ 已保存':'⚠ 本地缓存';
+  const ok=await ghSave(); btn.disabled=false; btn.textContent=T('归档 · ARCHIVE','Archive');
+  const msg=document.getElementById('detectiveSaveMsg'); msg.style.color=ok?'#6aaa5a':'#c44'; msg.textContent=ok?T('✓ 已保存','✓ Saved'):T('⚠ 本地缓存','⚠ Cached locally');
   renderDetectives();
   if(ok) setTimeout(()=>closeModal('detectiveModal'),800);
 }
 async function delDetective(id) {
-  if(!confirm('确认删除这个侦探？')) return;
+  if(!confirm(T('确认删除这个侦探？','Delete this detective?'))) return;
   detectives=detectives.filter(d=>d.id!==id); await ghSave(); renderDetectives();
 }
 
@@ -2013,7 +2156,7 @@ document.getElementById('btnParseReply').addEventListener('click', function() {
   let entriesArr = parsed.entries;
   if (entriesArr && !Array.isArray(entriesArr)) entriesArr = [entriesArr];
   if (!entriesArr || !entriesArr.length) {
-    errEl.textContent='✕ 未找到条目 JSON'; errEl.style.display='block'; return;
+    errEl.textContent=T('✕ 未找到条目 JSON','✕ No entries JSON found'); errEl.style.display='block'; return;
   }
   errEl.style.display='none';
 
@@ -2047,7 +2190,7 @@ document.getElementById('btnParseReply').addEventListener('click', function() {
       <div style="font-weight:700;color:var(--ink);margin-bottom:3px">${esc((parsed.author.name||''))}</div>
       <div style="font-size:12px;color:var(--ink-faded)">${esc((parsed.author.style||'').slice(0,120))}${(parsed.author.style||'').length>120?'…':''}</div>
       <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;cursor:pointer">
-        <input type="checkbox" id="importAuthorCheck" checked /> 导入此作者信息
+        <input type="checkbox" id="importAuthorCheck" checked /> ${T('导入此作者信息','Import this author')}
       </label>
     </div>` : '';
 
@@ -2057,7 +2200,7 @@ document.getElementById('btnParseReply').addEventListener('click', function() {
       <div style="font-weight:700;color:var(--ink);margin-bottom:3px">${esc(d.name)}</div>
       <div style="font-size:12px;color:var(--ink-faded)">${esc((d.trait||'').slice(0,120))}${(d.trait||'').length>120?'…':''}</div>
       <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;cursor:pointer">
-        <input type="checkbox" class="det-import-check" data-idx="${i}" checked /> 导入此侦探
+        <input type="checkbox" class="det-import-check" data-idx="${i}" checked /> ${T('导入此侦探','Import this detective')}
       </label>
     </div>`).join('');
 
@@ -2114,7 +2257,7 @@ function toggleMergeSelect(id) {
     card.classList.toggle('merge-selected', mergeSelected.has(cid));
   });
   const n = mergeSelected.size;
-  document.getElementById('mergeCount').textContent = '已选 ' + n + ' 条';
+  document.getElementById('mergeCount').textContent = T('已选 ' + n + ' 条', n + ' selected');
   document.getElementById('btnDoMerge').disabled = n < 2;
 }
 
@@ -2194,7 +2337,7 @@ document.getElementById('btnDoMerge').addEventListener('click', () => {
 document.getElementById('btnCopyMergePrompt').addEventListener('click', () => {
   navigator.clipboard.writeText(document.getElementById('mergePromptBox').textContent).then(() => {
     const el = document.getElementById('mergeCopyConfirm');
-    el.textContent = '✓ 已复制'; el.style.opacity = '1';
+    el.textContent = T('✓ 已复制','✓ Copied'); el.style.opacity = '1';
     setTimeout(() => { el.style.opacity = '0'; }, 2000);
   });
 });
@@ -2205,14 +2348,14 @@ document.getElementById('btnApplyMerge').addEventListener('click', () => {
   let result = parseJson(raw);
   if (Array.isArray(result)) result = result[0] || null;
   if (!result || !result.title) {
-    errEl.textContent = '✕ 未找到可解析的 JSON'; errEl.style.display = 'block'; return;
+    errEl.textContent = T('✕ 未找到可解析的 JSON','✕ No parseable JSON found'); errEl.style.display = 'block'; return;
   }
   errEl.style.display = 'none';
   mergedEntry = result;
 
   // Show preview
   const cat = result.cat || 'trick';
-  const catLabel = {'trick':'诡计','concept':'概念','narrative':'叙述手法'}[cat] || cat;
+  const catLabel = catL(cat);
   const srcHtml = (result.sources||[]).filter(s=>s.work).map(s =>
     '<div style="font-size:12px;color:var(--ink-faded);margin-top:4px">《'+esc(s.work)+'》' + (s.example?' — '+esc(s.example.slice(0,60))+(s.example.length>60?'…':''):'') + '</div>'
   ).join('');
@@ -2227,7 +2370,7 @@ document.getElementById('btnApplyMerge').addEventListener('click', () => {
 document.getElementById('btnConfirmMerge').addEventListener('click', async () => {
   if (!mergedEntry) return;
   const btn = document.getElementById('btnConfirmMerge');
-  btn.disabled = true; btn.textContent = '保存中…';
+  btn.disabled = true; btn.textContent = T('保存中…','Saving…');
 
   // Build the merged entry, preserving sources from original entries if not in result
   const origSources = entries.filter(e => mergeSelected.has(e.id)).flatMap(e => e.sources||[]);
@@ -2259,7 +2402,7 @@ document.getElementById('btnConfirmMerge').addEventListener('click', async () =>
   btn.disabled = false; btn.textContent = '确认合并并删除原条目';
   const msg = document.getElementById('mergeSaveMsg');
   msg.style.color = ok ? '#6aaa5a' : '#c44';
-  msg.textContent = ok ? '✓ 已保存' : '⚠ 本地缓存';
+  msg.textContent = ok ? T('✓ 已保存','✓ Saved') : T('⚠ 本地缓存','⚠ Cached locally');
 
   if (ok) {
     setTimeout(() => {
@@ -2283,7 +2426,7 @@ document.getElementById('mergeModal').addEventListener('click', e => { if (e.tar
 // ══════════════════════════════════════════════
 function openAddCL() {
   editingCLId = null;
-  document.getElementById('clModalTitle').textContent = 'NEW · 推理逻辑';
+  document.getElementById('clModalTitle').textContent = T('NEW · 推理逻辑','NEW · Case Logic');
   ['clWork','clCase','clSteps','clNotes'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('clSaveMsg').textContent = '';
   openModal('clModal');
@@ -2292,7 +2435,7 @@ function openAddCL() {
 function openEditCL(id) {
   const c = caseLogics.find(x => x.id === id); if (!c) return;
   editingCLId = id;
-  document.getElementById('clModalTitle').textContent = 'EDIT · 推理逻辑';
+  document.getElementById('clModalTitle').textContent = T('EDIT · 推理逻辑','EDIT · Case Logic');
   document.getElementById('clWork').value  = c.work  || '';
   document.getElementById('clCase').value  = c.case_ || '';
   document.getElementById('clSteps').value = c.steps || '';
@@ -2304,8 +2447,8 @@ function openEditCL(id) {
 async function submitCL() {
   const work  = document.getElementById('clWork').value.trim();
   const steps = document.getElementById('clSteps').value.trim();
-  if (!work || !steps) { alert('请填写书名和推理步骤'); return; }
-  const btn = document.getElementById('btnSubmitCL'); btn.disabled = true; btn.textContent = '保存中…';
+  if (!work || !steps) { alert(T('请填写书名和推理步骤','Please fill in the book and reasoning steps')); return; }
+  const btn = document.getElementById('btnSubmitCL'); btn.disabled = true; btn.textContent = T('保存中…','Saving…');
   const c = {
     id: editingCLId || nextCLId++,
     work, case_: document.getElementById('clCase').value.trim(),
@@ -2313,14 +2456,14 @@ async function submitCL() {
   };
   if (editingCLId) { const i = caseLogics.findIndex(x => x.id === editingCLId); caseLogics[i] = c; }
   else caseLogics.unshift(c);
-  const ok = await ghSave(); btn.disabled = false; btn.textContent = '归档 · ARCHIVE';
-  const msg = document.getElementById('clSaveMsg'); msg.style.color = ok ? '#6aaa5a' : '#c44'; msg.textContent = ok ? '✓ 已保存' : '⚠ 本地缓存';
+  const ok = await ghSave(); btn.disabled = false; btn.textContent = T('归档 · ARCHIVE','Archive');
+  const msg = document.getElementById('clSaveMsg'); msg.style.color = ok ? '#6aaa5a' : '#c44'; msg.textContent = ok ? T('✓ 已保存','✓ Saved') : T('⚠ 本地缓存','⚠ Cached locally');
   renderBooks();
   if (ok) setTimeout(() => closeModal('clModal'), 800);
 }
 
 async function delCL(id) {
-  if (!confirm('确认删除？')) return;
+  if (!confirm(T('确认删除？','Delete?'))) return;
   caseLogics = caseLogics.filter(c => c.id !== id);
   await ghSave(); renderBooks();
 }
@@ -2336,7 +2479,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnCopyCLPrompt').addEventListener('click', () => {
     navigator.clipboard.writeText(document.getElementById('clPromptBox').textContent).then(() => {
       const el = document.getElementById('clPromptCopyConfirm');
-      el.textContent = '✓ 已复制'; el.style.opacity = '1';
+      el.textContent = T('✓ 已复制','✓ Copied'); el.style.opacity = '1';
       setTimeout(() => { el.style.opacity = '0'; }, 2000);
     });
   });
@@ -2353,7 +2496,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const items = Array.isArray(content) ? content.filter(c => c.steps) : [];
 
     if (!items.length) {
-      errEl.textContent = '✕ 未找到可解析的推理逻辑'; errEl.style.display = 'block'; return;
+      errEl.textContent = T('✕ 未找到可解析的推理逻辑','✕ No parseable case logic found'); errEl.style.display = 'block'; return;
     }
     errEl.style.display = 'none';
 
@@ -2362,10 +2505,10 @@ window.addEventListener('DOMContentLoaded', () => {
     preview.innerHTML = items.map((c,i) => `
       <div style="margin-bottom:8px;padding:10px 12px;background:var(--paper-dark);border:1.5px solid var(--paper-darker)">
         <div style="font-family:'Special Elite',monospace;font-size:9px;color:var(--ink-lighter);letter-spacing:2px;margin-bottom:4px">CASE LOGIC</div>
-        <div style="font-weight:700;margin-bottom:4px">${esc(c.case_||'推理逻辑')}</div>
+        <div style="font-weight:700;margin-bottom:4px">${esc(c.case_||T('推理逻辑','Case Logic'))}</div>
         <div style="font-size:12px;color:var(--ink-faded)">${esc((c.steps||'').split('\n')[0])}${(c.steps||'').includes('\n')?'…':''}</div>
         <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;cursor:pointer">
-          <input type="checkbox" class="cl-prompt-check" data-idx="${i}" checked /> 导入
+          <input type="checkbox" class="cl-prompt-check" data-idx="${i}" checked /> ${T('导入','Import')}
         </label>
       </div>`).join('');
     preview.dataset.items = JSON.stringify(items);
@@ -2373,13 +2516,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Change button to confirm
     const btn = document.getElementById('btnParseCLReply');
-    btn.textContent = '确认导入';
+    btn.textContent = T('确认导入','Confirm import');
     btn.onclick = async () => {
       const selected = items.filter((_,i) => {
         const cb = document.querySelector(`.cl-prompt-check[data-idx="${i}"]`);
         return cb && cb.checked;
       });
-      btn.disabled = true; btn.textContent = '保存中…';
+      btn.disabled = true; btn.textContent = T('保存中…','Saving…');
       caseLogics.unshift(...selected.map(c => ({
         id: nextCLId++, work, case_: (c.case_||'').trim(), steps: (c.steps||'').trim(), notes: '', date: today()
       })));
@@ -2387,9 +2530,9 @@ window.addEventListener('DOMContentLoaded', () => {
       btn.disabled = false;
       const msg = document.getElementById('clPromptSaveMsg');
       msg.style.color = ok ? '#6aaa5a' : '#c44';
-      msg.textContent = ok ? `✓ 已导入 ${selected.length} 条` : '⚠ 本地缓存';
+      msg.textContent = ok ? T(`✓ 已导入 ${selected.length} 条`,`✓ Imported ${selected.length}`) : T('⚠ 本地缓存','⚠ Cached locally');
       renderBooks();
-      if (ok) setTimeout(() => { closeModal('clPromptModal'); btn.textContent = '解析结果'; btn.onclick = null; }, 800);
+      if (ok) setTimeout(() => { closeModal('clPromptModal'); btn.textContent = T('解析结果','Parse result'); btn.onclick = null; }, 800);
     };
   });
 
@@ -2449,7 +2592,7 @@ function openAddTrickForBook(work, author) {
     jsonTemplate
   ].join('\n');
 
-  document.getElementById('trickPromptModalTitle').textContent = `《${work}》· 增补条目`;
+  document.getElementById('trickPromptModalTitle').textContent = `《${work}》${T(' · 增补条目',' · Add entries')}`;
   document.getElementById('trickPromptBox').textContent = prompt;
   document.getElementById('trickPromptPasteArea').value = '';
   document.getElementById('trickPromptParseErr').style.display = 'none';
@@ -2458,7 +2601,7 @@ function openAddTrickForBook(work, author) {
   document.getElementById('trickPromptModal').dataset.work = work;
   document.getElementById('trickPromptModal').dataset.author = author;
   const parseBtn = document.getElementById('btnParseTrickReply');
-  parseBtn.textContent = '解析结果';
+  parseBtn.textContent = T('解析结果','Parse result');
   parseBtn.onclick = null;
   openModal('trickPromptModal');
 }
@@ -2467,7 +2610,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnCopyTrickPrompt').addEventListener('click', () => {
     navigator.clipboard.writeText(document.getElementById('trickPromptBox').textContent).then(() => {
       const el = document.getElementById('trickPromptCopyConfirm');
-      el.textContent = '✓ 已复制'; el.style.opacity = '1';
+      el.textContent = T('✓ 已复制','✓ Copied'); el.style.opacity = '1';
       setTimeout(() => { el.style.opacity = '0'; }, 2000);
     });
   });
@@ -2482,7 +2625,7 @@ window.addEventListener('DOMContentLoaded', () => {
     let arr = fenceMatch ? parseJson(fenceMatch[1].trim()) : parseJson(raw);
     if (arr && !Array.isArray(arr)) arr = [arr];
     if (!arr || !arr.length) {
-      errEl.textContent = '✕ 未找到可解析的 JSON'; errEl.style.display = 'block'; return;
+      errEl.textContent = T('✕ 未找到可解析的 JSON','✕ No parseable JSON found'); errEl.style.display = 'block'; return;
     }
     errEl.style.display = 'none';
 
@@ -2502,18 +2645,18 @@ window.addEventListener('DOMContentLoaded', () => {
     })).filter(p => p.title && p.summary);
 
     if (!items.length) {
-      errEl.textContent = '✕ 没有有效条目（需要 title 和 summary）'; errEl.style.display = 'block'; return;
+      errEl.textContent = T('✕ 没有有效条目（需要 title 和 summary）','✕ No valid entries (need title and summary)'); errEl.style.display = 'block'; return;
     }
 
     const preview = document.getElementById('trickPromptPreview');
     preview.innerHTML = items.map((e,i) => {
       const similar = findSimilarEntry(e.title);
-      const warn = similar ? `<div style="font-size:11px;color:var(--gold);margin-top:3px">⚠ 疑似重复：「${esc(similar.entry.title)}」</div>` : '';
+      const warn = similar ? `<div style="font-size:11px;color:var(--gold);margin-top:3px">${T('⚠ 疑似重复：「','⚠ Possible duplicate: “')}${esc(similar.entry.title)}${T('」','”')}</div>` : '';
       return `<div style="padding:8px 12px;margin-bottom:6px;background:var(--paper-dark);border:1.5px solid var(--paper-darker)">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
           <input type="checkbox" class="trick-prompt-check" data-idx="${i}" checked />
           <span style="font-weight:700">${esc(e.title)}</span>
-          <span class="card-cat ${CAT_CLASS[e.cat]||'cat-trick'}">${CAT_LABEL[e.cat]||e.cat}</span>
+          <span class="card-cat ${CAT_CLASS[e.cat]||'cat-trick'}">${catL(e.cat)}</span>
         </div>
         <div style="font-size:12px;color:var(--ink-faded)">${esc(e.summary)}</div>
         ${warn}
@@ -2534,13 +2677,13 @@ window.addEventListener('DOMContentLoaded', () => {
       return cb && cb.checked;
     });
     const btn = document.getElementById('btnConfirmTrickImport');
-    btn.disabled = true; btn.textContent = '保存中…';
+    btn.disabled = true; btn.textContent = T('保存中…','Saving…');
     selected.forEach(e => entries.unshift({ id: nextId++, date: today(), ...e }));
     const ok = await ghSave();
-    btn.disabled = false; btn.textContent = '确认导入';
+    btn.disabled = false; btn.textContent = T('确认导入','Confirm import');
     const msg = document.getElementById('trickPromptSaveMsg');
     msg.style.color = ok ? '#6aaa5a' : '#c44';
-    msg.textContent = ok ? `✓ 已导入 ${selected.length} 条` : '⚠ 本地缓存';
+    msg.textContent = ok ? T(`✓ 已导入 ${selected.length} 条`,`✓ Imported ${selected.length}`) : T('⚠ 本地缓存','⚠ Cached locally');
     renderTricks(); renderBooks();
     if (ok) {
       setTimeout(() => {
@@ -2562,7 +2705,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnCopyCLPrompt').addEventListener('click', () => {
     navigator.clipboard.writeText(document.getElementById('clPromptBox').textContent).then(() => {
       const el = document.getElementById('clPromptCopyConfirm');
-      el.textContent = '✓ 已复制'; el.style.opacity = '1';
+      el.textContent = T('✓ 已复制','✓ Copied'); el.style.opacity = '1';
       setTimeout(() => { el.style.opacity = '0'; }, 2000);
     });
   });
@@ -2578,7 +2721,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const items = Array.isArray(content) ? content.filter(c => c.steps) : [];
 
     if (!items.length) {
-      errEl.textContent = '✕ 未找到可解析的推理逻辑'; errEl.style.display = 'block'; return;
+      errEl.textContent = T('✕ 未找到可解析的推理逻辑','✕ No parseable case logic found'); errEl.style.display = 'block'; return;
     }
     errEl.style.display = 'none';
 
@@ -2586,23 +2729,23 @@ window.addEventListener('DOMContentLoaded', () => {
     preview.innerHTML = items.map((c,i) => `
       <div style="margin-bottom:8px;padding:10px 12px;background:var(--paper-dark);border:1.5px solid var(--paper-darker)">
         <div style="font-family:'Special Elite',monospace;font-size:9px;color:var(--ink-lighter);letter-spacing:2px;margin-bottom:4px">CASE LOGIC</div>
-        <div style="font-weight:700;margin-bottom:4px">${esc(c.case_||'推理逻辑')}</div>
+        <div style="font-weight:700;margin-bottom:4px">${esc(c.case_||T('推理逻辑','Case Logic'))}</div>
         <div style="font-size:12px;color:var(--ink-faded)">${esc((c.steps||'').split('\n')[0])}${(c.steps||'').includes('\n')?'…':''}</div>
         <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;cursor:pointer">
-          <input type="checkbox" class="cl-prompt-check" data-idx="${i}" checked /> 导入
+          <input type="checkbox" class="cl-prompt-check" data-idx="${i}" checked /> ${T('导入','Import')}
         </label>
       </div>`).join('');
     preview.dataset.items = JSON.stringify(items);
     preview.style.display = 'block';
 
     const btn = document.getElementById('btnParseCLReply');
-    btn.textContent = '确认导入';
+    btn.textContent = T('确认导入','Confirm import');
     btn.onclick = async () => {
       const selected = items.filter((_,i) => {
         const cb = document.querySelector(`.cl-prompt-check[data-idx="${i}"]`);
         return cb && cb.checked;
       });
-      btn.disabled = true; btn.textContent = '保存中…';
+      btn.disabled = true; btn.textContent = T('保存中…','Saving…');
       caseLogics.unshift(...selected.map(c => ({
         id: nextCLId++, work, case_: (c.case_||'').trim(), steps: (c.steps||'').trim(), notes: '', date: today()
       })));
@@ -2610,9 +2753,9 @@ window.addEventListener('DOMContentLoaded', () => {
       btn.disabled = false;
       const msg = document.getElementById('clPromptSaveMsg');
       msg.style.color = ok ? '#6aaa5a' : '#c44';
-      msg.textContent = ok ? `✓ 已导入 ${selected.length} 条` : '⚠ 本地缓存';
+      msg.textContent = ok ? T(`✓ 已导入 ${selected.length} 条`,`✓ Imported ${selected.length}`) : T('⚠ 本地缓存','⚠ Cached locally');
       renderBooks();
-      if (ok) setTimeout(() => { closeModal('clPromptModal'); btn.textContent = '解析结果'; btn.onclick = null; }, 800);
+      if (ok) setTimeout(() => { closeModal('clPromptModal'); btn.textContent = T('解析结果','Parse result'); btn.onclick = null; }, 800);
     };
   });
 
@@ -2675,7 +2818,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnCopyVerifyPrompt').addEventListener('click', () => {
     navigator.clipboard.writeText(document.getElementById('verifyPromptBox').textContent).then(() => {
       const el = document.getElementById('verifyCopyConfirm');
-      el.textContent = '✓ 已复制'; el.style.opacity = '1';
+      el.textContent = T('✓ 已复制','✓ Copied'); el.style.opacity = '1';
       setTimeout(() => { el.style.opacity = '0'; }, 2000);
     });
   });
@@ -2685,7 +2828,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const errEl = document.getElementById('verifyParseErr');
     let arr = parseJson(raw);
     if (!Array.isArray(arr) || !arr.length) {
-      errEl.textContent = '✕ 未找到可解析的 JSON'; errEl.style.display = 'block'; return;
+      errEl.textContent = T('✕ 未找到可解析的 JSON','✕ No parseable JSON found'); errEl.style.display = 'block'; return;
     }
     errEl.style.display = 'none';
 
@@ -2694,17 +2837,17 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Preview
     const preview = document.getElementById('verifyPreview');
-    preview.innerHTML = '<div style="font-family:\'Special Elite\',monospace;font-size:9px;letter-spacing:2px;color:var(--ink-lighter);margin-bottom:8px">预览更新内容</div>' +
+    preview.innerHTML = `<div style="font-family:'Special Elite',monospace;font-size:9px;letter-spacing:2px;color:var(--ink-lighter);margin-bottom:8px">${T('预览更新内容','Preview updates')}</div>` +
       arr.map(item => {
         const current = detectives.find(d => d.name === item.detectiveName);
         const changes = [];
-        if (current && current.authorName !== item.authorName) changes.push(`所属作者：${current.authorName||'空'} → ${item.authorName}`);
-        if (!current) changes.push('新侦探记录');
-        const books = (item.appearsIn||[]).join('、') || '（无）';
+        if (current && current.authorName !== item.authorName) changes.push(T('所属作者：','Author: ')+`${current.authorName||T('空','empty')} → ${item.authorName}`);
+        if (!current) changes.push(T('新侦探记录','New detective record'));
+        const books = (item.appearsIn||[]).join('、') || T('（无）','(none)');
         return `<div style="padding:8px 12px;margin-bottom:6px;background:var(--paper-dark);border:1.5px solid var(--paper-darker)">
           <div style="font-weight:700;margin-bottom:4px">${esc(item.detectiveName)}</div>
-          ${changes.length ? `<div style="font-size:12px;color:var(--gold)">${changes.join('；')}</div>` : '<div style="font-size:12px;color:var(--ink-lighter)">所属作者无变化</div>'}
-          <div style="font-size:12px;color:var(--ink-faded);margin-top:2px">出现作品：${esc(books)}</div>
+          ${changes.length ? `<div style="font-size:12px;color:var(--gold)">${changes.join('；')}</div>` : `<div style="font-size:12px;color:var(--ink-lighter)">${T('所属作者无变化','Author unchanged')}</div>`}
+          <div style="font-size:12px;color:var(--ink-faded);margin-top:2px">${T('出现作品：','Appears in: ')}${esc(books)}</div>
         </div>`;
       }).join('');
     preview.style.display = 'block';
@@ -2715,7 +2858,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnApplyVerify').addEventListener('click', async () => {
     const arr = window._pendingVerify || [];
     const btn = document.getElementById('btnApplyVerify');
-    btn.disabled = true; btn.textContent = '保存中…';
+    btn.disabled = true; btn.textContent = T('保存中…','Saving…');
 
     arr.forEach(item => {
       const det = detectives.find(d => d.name === item.detectiveName);
@@ -2729,7 +2872,7 @@ window.addEventListener('DOMContentLoaded', () => {
     btn.disabled = false; btn.textContent = '确认应用';
     const msg = document.getElementById('verifySaveMsg');
     msg.style.color = ok ? '#6aaa5a' : '#c44';
-    msg.textContent = ok ? '✓ 已保存' : '⚠ 本地缓存';
+    msg.textContent = ok ? T('✓ 已保存','✓ Saved') : T('⚠ 本地缓存','⚠ Cached locally');
     renderDetectives(); renderAuthors();
     if (ok) setTimeout(() => closeModal('verifyModal'), 800);
   });
@@ -2751,7 +2894,7 @@ async function togglePublic(id, checked) {
 
 function exportPublic() {
   const pub = entries.filter(e => e.public);
-  if (!pub.length) { alert('没有标记为「公开展示」的条目。'); return; }
+  if (!pub.length) { alert(T('没有标记为「公开展示」的条目。','No entries marked as public.')); return; }
 
   const CAT_SECTION = {
     'trick':          { type: 'tricks',         label: '诡计' },
@@ -2805,7 +2948,7 @@ async function publishPublic(filename, json, count) {
   const PUBLIC_REPO = 'Database-Public'; // 公开数据专用仓库（public）——网站只从这里读取，碰不到私有库
   if (cfg.token && cfg.owner) {
     try {
-      setSyncStatus('loading', '发布公开数据…');
+      setSyncStatus('loading', T('发布公开数据…','Publishing…'));
       const url = `https://api.github.com/repos/${cfg.owner}/${PUBLIC_REPO}/contents/${filename}`;
       const head = await fetch(url, { headers: ghHeaders() });
       const sha = head.ok ? (await head.json()).sha : undefined;
@@ -2813,10 +2956,10 @@ async function publishPublic(filename, json, count) {
       if (sha) body.sha = sha;
       const res = await fetch(url, { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
       if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.message || `HTTP ${res.status}`); }
-      setSyncStatus('ok', `已发布 ${count} 条公开数据 → ${filename}`);
+      setSyncStatus('ok', T(`已发布 ${count} 条公开数据 → ${filename}`,`Published ${count} public entries → ${filename}`));
       return;
     } catch (e) {
-      setSyncStatus('err', '发布失败: ' + e.message + '，已转为本地下载');
+      setSyncStatus('err', T('发布失败: ','Publish failed: ') + e.message + T('，已转为本地下载',', fell back to local download'));
     }
   }
   const blob = new Blob([json], { type: 'application/json' });

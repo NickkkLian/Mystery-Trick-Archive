@@ -998,7 +998,12 @@ async function ghSave() {
     const content = btoa(unescape(encodeURIComponent(JSON.stringify({ entries, authors, detectives, detectiveMoves, caseLogics }, null, 2))));
     const body = { message: `update ${new Date().toISOString().slice(0,10)}`, content };
     if (fileSha) body.sha = fileSha;
-    const res = await fetch(ghUrl(), { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
+    let res = await fetch(ghUrl(), { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
+    if (res.status === 409 || res.status === 422) {   // sha 过期/缺失：取最新 sha 重试一次
+      const cur = await fetch(ghUrl() + '?t=' + Date.now(), { headers: ghHeaders() });
+      if (cur.ok) { fileSha = (await cur.json()).sha; if (fileSha) body.sha = fileSha; }
+      res = await fetch(ghUrl(), { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
+    }
     if (!res.ok) { const j = await res.json().catch(()=>{}); throw new Error((j||{}).message || `HTTP ${res.status}`); }
     const json = await res.json();
     fileSha = json.content.sha;

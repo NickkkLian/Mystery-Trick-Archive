@@ -1003,8 +1003,16 @@ async function ghLoad() {
 
 async function ghSave() {
   if (!cfg.token || !cfg.owner || !cfg.repo) {
-    localStorage.setItem('mtrick_local', JSON.stringify({ entries, authors, detectives, detectiveMoves, caseLogics }));
-    setSyncStatus('err', T('未配置 GitHub，已本地缓存','GitHub not configured, cached locally')); return false;
+    // 本地缓存写不下不该把整个保存流程带崩
+    try {
+      localStorage.setItem('mtrick_local', JSON.stringify({ entries, authors, detectives, detectiveMoves, caseLogics }));
+      setSyncStatus('err', T('未配置 GitHub，已本地缓存','GitHub not configured, cached locally'));
+    } catch(e) {
+      try { localStorage.removeItem('mtrick_local'); } catch(e2) {}
+      setSyncStatus('err', T('未配置 GitHub，且本地缓存已满 —— 内容只在当前页面里，请尽快配置并保存',
+                             'GitHub not configured and local cache is full — data lives only in this tab'));
+    }
+    return false;
   }
   setSyncStatus('loading', T('保存中…','Saving…'));
   try {

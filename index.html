@@ -340,7 +340,7 @@ button,a,summary,label,[role="button"],[onclick]{
     <button class="btn-merge" id="btnStartMerge" data-i18n="btnMerge">⇌ 合并条目</button>
     <button class="btn-merge" id="btnExportPublic" data-i18n="btnExport" style="background:var(--paper-dark);color:var(--green);border-color:var(--green)">↑ 导出公开数据</button>
     <button class="settings-btn" id="langBtn" onclick="toggleLang()" title="中 / EN">EN</button>
-    <button class="settings-btn" id="btnSettings">⚙</button>
+    <button aria-label="设置" class="settings-btn" id="btnSettings">⚙</button>
   </div>
   <!-- merge selection bar -->
   <div class="merge-bar" id="mergeBar">
@@ -378,7 +378,7 @@ button,a,summary,label,[role="button"],[onclick]{
 <!-- ══════════════════ DETAIL MODAL ══════════════════ -->
 <div class="modal-overlay" id="detailModal">
   <div class="modal">
-    <div class="modal-header"><h2 data-i18n="hdrDetail">CASE FILE · 档案详情</h2><button class="modal-close" id="detailClose">✕</button></div>
+    <div class="modal-header"><h2 data-i18n="hdrDetail">CASE FILE · 档案详情</h2><button aria-label="关闭" class="modal-close" id="detailClose">✕</button></div>
     <div class="modal-body" id="detailBody"></div>
   </div>
 </div>
@@ -386,7 +386,7 @@ button,a,summary,label,[role="button"],[onclick]{
 <!-- ══════════════════ FORM MODAL ══════════════════ -->
 <div class="modal-overlay" id="formModal">
   <div class="modal">
-    <div class="modal-header"><h2 id="formTitle">NEW ENTRY · 新增条目</h2><button class="modal-close" id="formClose">✕</button></div>
+    <div class="modal-header"><h2 id="formTitle">NEW ENTRY · 新增条目</h2><button aria-label="关闭" class="modal-close" id="formClose">✕</button></div>
     <div class="modal-body">
       <div class="f-row">
         <div class="f-group">
@@ -484,7 +484,7 @@ button,a,summary,label,[role="button"],[onclick]{
 <!-- ══════════════════ IMPORT MODAL ══════════════════ -->
 <div class="modal-overlay" id="importModal">
   <div class="modal">
-    <div class="modal-header"><h2 id="importTitle">IMPORT · 从书名导入</h2><button class="modal-close" id="importClose">✕</button></div>
+    <div class="modal-header"><h2 id="importTitle">IMPORT · 从书名导入</h2><button aria-label="关闭" class="modal-close" id="importClose">✕</button></div>
     <div class="modal-body">
 
       <!-- Step 1: enter book name, get prompt -->
@@ -540,7 +540,7 @@ button,a,summary,label,[role="button"],[onclick]{
 <!-- ══════════════════ SETTINGS MODAL ══════════════════ -->
 <div class="modal-overlay" id="settingsModal">
   <div class="modal modal-sm">
-    <div class="modal-header"><h2 data-i18n="hdrSettings">SETTINGS · GitHub 配置</h2><button class="modal-close" id="settingsClose">✕</button></div>
+    <div class="modal-header"><h2 data-i18n="hdrSettings">SETTINGS · GitHub 配置</h2><button aria-label="关闭" class="modal-close" id="settingsClose">✕</button></div>
     <div class="modal-body">
       <div class="f-group">
         <label class="f-label" data-i18n="sl_token">Personal Access Token</label>
@@ -592,7 +592,7 @@ button,a,summary,label,[role="button"],[onclick]{
 <!-- ══ AUTHOR FORM MODAL ══ -->
 <div class="modal-overlay" id="authorModal">
   <div class="modal">
-    <div class="modal-header"><h2 id="authorModalTitle">NEW AUTHOR · 新增作者</h2><button class="modal-close" id="authorModalClose">✕</button></div>
+    <div class="modal-header"><h2 id="authorModalTitle">NEW AUTHOR · 新增作者</h2><button aria-label="关闭" class="modal-close" id="authorModalClose">✕</button></div>
     <div class="modal-body">
       <div class="f-group">
         <label class="f-label" data-i18n="al_name">作者姓名 *</label>
@@ -618,7 +618,7 @@ button,a,summary,label,[role="button"],[onclick]{
 <!-- ══ DETECTIVE FORM MODAL ══ -->
 <div class="modal-overlay" id="detectiveModal">
   <div class="modal">
-    <div class="modal-header"><h2 id="detectiveModalTitle">NEW DETECTIVE · 新增侦探</h2><button class="modal-close" id="detectiveModalClose">✕</button></div>
+    <div class="modal-header"><h2 id="detectiveModalTitle">NEW DETECTIVE · 新增侦探</h2><button aria-label="关闭" class="modal-close" id="detectiveModalClose">✕</button></div>
     <div class="modal-body">
       <div class="f-row">
         <div class="f-group">
@@ -651,7 +651,7 @@ button,a,summary,label,[role="button"],[onclick]{
 <!-- ══ MERGE MODAL ══ -->
 <div class="modal-overlay" id="mergeModal">
   <div class="modal">
-    <div class="modal-header"><h2 data-i18n="hdrMerge">MERGE · 合并条目</h2><button class="modal-close" id="mergeModalClose">✕</button></div>
+    <div class="modal-header"><h2 data-i18n="hdrMerge">MERGE · 合并条目</h2><button aria-label="关闭" class="modal-close" id="mergeModalClose">✕</button></div>
     <div class="modal-body">
       <p class="f-label" data-i18n="copyPasteHint" style="margin-bottom:6px">把下面这段 prompt 复制，粘贴到 Claude 新对话里：</p>
       <div class="prompt-box" id="mergePromptBox" style="max-height:200px;font-size:11px"></div>
@@ -688,7 +688,7 @@ button,a,summary,label,[role="button"],[onclick]{
 <!-- ══ CASE LOGIC FORM (used from book library) ══ -->
 <div class="modal-overlay" id="clModal">
   <div class="modal">
-    <div class="modal-header"><h2 id="clModalTitle">NEW · 推理逻辑</h2><button class="modal-close" id="clModalClose">✕</button></div>
+    <div class="modal-header"><h2 id="clModalTitle">NEW · 推理逻辑</h2><button aria-label="关闭" class="modal-close" id="clModalClose">✕</button></div>
     <div class="modal-body">
       <div class="f-row">
         <div class="f-group">
@@ -721,7 +721,7 @@ button,a,summary,label,[role="button"],[onclick]{
 <!-- ══ CASE LOGIC PROMPT MODAL ══ -->
 <div class="modal-overlay" id="clPromptModal">
   <div class="modal">
-    <div class="modal-header"><h2 id="clPromptModalTitle" data-i18n="hdrCLPrompt">推理逻辑 · 生成 Prompt</h2><button class="modal-close" id="clPromptModalClose">✕</button></div>
+    <div class="modal-header"><h2 id="clPromptModalTitle" data-i18n="hdrCLPrompt">推理逻辑 · 生成 Prompt</h2><button aria-label="关闭" class="modal-close" id="clPromptModalClose">✕</button></div>
     <div class="modal-body">
       <p class="f-label" data-i18n="pasteCLHint" style="margin-bottom:6px">把下面这段 prompt 复制到 Claude 新对话：</p>
       <div class="prompt-box" id="clPromptBox" style="max-height:180px;font-size:11px"></div>
@@ -746,7 +746,7 @@ button,a,summary,label,[role="button"],[onclick]{
 <!-- ══ TRICK PROMPT MODAL ══ -->
 <div class="modal-overlay" id="trickPromptModal">
   <div class="modal">
-    <div class="modal-header"><h2 id="trickPromptModalTitle" data-i18n="hdrTrickPrompt">增补条目 · 生成 Prompt</h2><button class="modal-close" id="trickPromptModalClose">✕</button></div>
+    <div class="modal-header"><h2 id="trickPromptModalTitle" data-i18n="hdrTrickPrompt">增补条目 · 生成 Prompt</h2><button aria-label="关闭" class="modal-close" id="trickPromptModalClose">✕</button></div>
     <div class="modal-body">
       <p class="f-label" data-i18n="pasteCLHint" style="margin-bottom:6px">把下面这段 prompt 复制到 Claude 新对话：</p>
       <div class="prompt-box" id="trickPromptBox" style="max-height:180px;font-size:11px"></div>
@@ -772,7 +772,7 @@ button,a,summary,label,[role="button"],[onclick]{
 <!-- ══ VERIFY RELATIONS MODAL ══ -->
 <div class="modal-overlay" id="verifyModal">
   <div class="modal">
-    <div class="modal-header"><h2 data-i18n="hdrVerify">校对作者 · 侦探 · 作品关系</h2><button class="modal-close" id="verifyModalClose">✕</button></div>
+    <div class="modal-header"><h2 data-i18n="hdrVerify">校对作者 · 侦探 · 作品关系</h2><button aria-label="关闭" class="modal-close" id="verifyModalClose">✕</button></div>
     <div class="modal-body">
       <p class="f-label" data-i18n="pasteCLHint" style="margin-bottom:6px">把下面这段 prompt 复制到 Claude 新对话：</p>
       <div class="prompt-box" id="verifyPromptBox" style="max-height:200px;font-size:11px"></div>
@@ -1086,8 +1086,8 @@ function renderTricks() {
     return `
     <div class="card" data-id="${e.id}" onclick="openDetail(${e.id})" style="position:relative">
       <div class="card-actions">
-        <button class="card-btn" onclick="event.stopPropagation();openEdit(${e.id})">✎</button>
-        <button class="card-btn" onclick="event.stopPropagation();delEntry(${e.id})">✕</button>
+        <button aria-label="${T('编辑','Edit')}" class="card-btn" onclick="event.stopPropagation();openEdit(${e.id})">✎</button>
+        <button aria-label="${T('删除这个条目','Delete entry')}" class="card-btn" onclick="event.stopPropagation();delEntry(${e.id})">✕</button>
       </div>
       <span class="card-cat ${CAT_CLASS[e.cat]||'cat-trick'}">${catL(e.cat)}</span>
       ${e.public?`<span style="position:absolute;top:8px;right:8px;font-size:9px;font-family:'Special Elite',monospace;color:var(--green);letter-spacing:1px;opacity:.8">✦ ${T('公开','Public')}</span>`:''}
@@ -1150,8 +1150,8 @@ function renderBooks() {
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
           <span style="font-family:'Special Elite',monospace;font-size:9px;letter-spacing:2px;color:var(--ink-lighter)">${esc(c.case_||T('推理逻辑','Case Logic'))}</span>
           <div style="display:flex;gap:4px">
-            <button class="card-btn" onclick="openEditCL(${c.id})">✎</button>
-            <button class="card-btn" onclick="delCL(${c.id});renderBooks()">✕</button>
+            <button aria-label="${T('编辑','Edit')}" class="card-btn" onclick="openEditCL(${c.id})">✎</button>
+            <button aria-label="${T('删除这条推理链','Delete chain')}" class="card-btn" onclick="delCL(${c.id});renderBooks()">✕</button>
           </div>
         </div>
         ${renderFlowChart(c.steps)}
@@ -1162,7 +1162,7 @@ function renderBooks() {
       <div style="margin-top:12px;border-top:1px solid var(--paper-darker);padding-top:10px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
           <span style="font-family:'Special Elite',monospace;font-size:9px;letter-spacing:2px;color:var(--ink-lighter)">${T('推理逻辑','Case Logic')}</span>
-          <button class="card-btn" style="width:auto;padding:2px 8px;font-size:11px" onclick="openAddCLForBook('${esc(b.work)}','${esc(b.author||'')}')">＋</button>
+          <button aria-label="${T('新增推理链','Add chain')}" class="card-btn" style="width:auto;padding:2px 8px;font-size:11px" onclick="openAddCLForBook('${esc(b.work)}','${esc(b.author||'')}')">＋</button>
         </div>
         ${logicRows || `<div style="font-size:12px;color:var(--ink-lighter);font-style:italic">${T('暂无','None')}</div>`}
       </div>`;
@@ -1281,7 +1281,7 @@ function makeTagInput(wrapId, tagsArr) {
     wrap.querySelectorAll('.tag-chip').forEach(c=>c.remove());
     tagsArr.forEach((tag,i) => {
       const chip = document.createElement('span'); chip.className = 'tag-chip';
-      chip.innerHTML = `${esc(tag)}<button type="button">×</button>`;
+      chip.innerHTML = `${esc(tag)}<button aria-label="${T('删除这个标签','Remove tag')}" type="button">×</button>`;
       chip.querySelector('button').onclick = ev => { ev.stopPropagation(); tagsArr.splice(i,1); refresh(); };
       wrap.insertBefore(chip, input);
     });
@@ -1304,7 +1304,7 @@ function renderSourceList() {
   const list = document.getElementById('sourceList');
   list.innerHTML = formSources.map((s,i)=>`
     <div class="source-item">
-      <button class="source-remove" onclick="removeSource(${i})">✕</button>
+      <button aria-label="${T('移除这个来源','Remove source')}" class="source-remove" onclick="removeSource(${i})">✕</button>
       <div class="source-item-row">
         <div>
           <label class="f-label" style="margin-bottom:3px">${T('书名','Book')}</label>
@@ -1894,8 +1894,8 @@ function renderAuthors() {
           '<div class="coll-badges">'+bookBadges+detBadges+'</div>' +
         '</div>' +
         '<div class="coll-actions">' +
-          '<button class="card-btn" onclick="event.stopPropagation();openEditAuthor('+a.id+')">✎</button>' +
-          '<button class="card-btn" onclick="event.stopPropagation();delAuthor('+a.id+')">✕</button>' +
+          '<button aria-label="编辑" class="card-btn" onclick="event.stopPropagation();openEditAuthor('+a.id+')">✎</button>' +
+          '<button aria-label="删除这位作者" class="card-btn" onclick="event.stopPropagation();delAuthor('+a.id+')">✕</button>' +
         '</div>' +
       '</div>' +
       '<div class="coll-body">' +
@@ -1936,8 +1936,8 @@ function renderDetectives() {
           '<div class="coll-badges">'+authorBadge+bookBadges+'</div>' +
         '</div>' +
         '<div class="coll-actions">' +
-          '<button class="card-btn" onclick="event.stopPropagation();openEditDetective('+d.id+')">✎</button>' +
-          '<button class="card-btn" onclick="event.stopPropagation();delDetective('+d.id+')">✕</button>' +
+          '<button aria-label="编辑" class="card-btn" onclick="event.stopPropagation();openEditDetective('+d.id+')">✎</button>' +
+          '<button aria-label="删除这位侦探" class="card-btn" onclick="event.stopPropagation();delDetective('+d.id+')">✕</button>' +
         '</div>' +
       '</div>' +
       '<div class="coll-body">' +
